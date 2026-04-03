@@ -1,0 +1,39 @@
+{
+    "name": "SOYPROFESIONAL - Profesionales cerca tuyo",
+    "short_name": "SOYPROFESIONAL",
+    "description": "Encontrá profesionales de confianza cerca tuyo. Gasistas, plomeros, electricistas y más servicios en tu zona.",
+    "start_url": "/",
+    "id": "/",
+    "display": "standalone",
+    "background_color": "#0f172a",
+    "theme_color": "#10b981",
+    "orientation": "portrait",
+    "scope": "/",
+    "icons": [
+        {
+            "src": "/icons/icon.svg",
+            "sizes": "any",
+            "type": "image/svg+xml"
+        },
+        {
+            "src": "/icons/icon-512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "/icons/icon-512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "maskable"
+        }
+    ],
+    "categories": [
+        "business",
+        "lifestyle",
+        "utilities"
+    ],
+    "lang": "es-AR",
+    "dir": "ltr",
+    "prefer_related_applications": false
+}
