@@ -17,6 +17,7 @@ import { OnboardingPage } from './pages/OnboardingPage';
 import { NotificationsPage } from './pages/NotificationsPage';
 import { ReviewProvider } from './contexts/ReviewContext';
 import { NotificationProvider } from './contexts/NotificationContext';
+import { AuthProvider } from './contexts/AuthContext';
 import { InstallPrompt } from './components/InstallPrompt';
 import { UpdatePrompt } from './components/UpdatePrompt';
 import { NotificationPermissionPrompt } from './components/NotificationPermissionPrompt';
@@ -24,34 +25,36 @@ import { NotificationPermissionPrompt } from './components/NotificationPermissio
 
 function App() {
   return (
-    <NotificationProvider>
-      <ReviewProvider>
-        <BrowserRouter>
-          <Routes>
-            <Route element={<Layout />}>
-              <Route path="/" element={<MapPage />} />
-              <Route path="/search" element={<SearchPage />} />
-              <Route path="/post" element={<PostPage />} />
-              <Route path="/messages" element={<MessagesPage />} />
-              <Route path="/profile" element={<ProfilePage />} />
-              <Route path="/location-settings" element={<LocationSettingsPage />} />
-              <Route path="/relays" element={<RelaysPage />} />
-              <Route path="/boost" element={<BoostPage />} />
-              <Route path="/map-full" element={<FullMapPage />} />
-              <Route path="/edit-profile" element={<EditProfilePage />} />
-              <Route path="/professional/:id" element={<ProfessionalProfilePage />} />
-              <Route path="/notifications" element={<NotificationsPage />} />
-            </Route>
-            <Route path="/chat/:chatId" element={<ChatPage />} />
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/onboarding" element={<OnboardingPage />} />
-          </Routes>
-          <InstallPrompt />
-          <UpdatePrompt />
-          <NotificationPermissionPrompt />
-        </BrowserRouter>
-      </ReviewProvider>
-    </NotificationProvider>
+    <AuthProvider>
+      <NotificationProvider>
+        <ReviewProvider>
+          <BrowserRouter>
+            <Routes>
+              <Route element={<Layout />}>
+                <Route path="/" element={<MapPage />} />
+                <Route path="/search" element={<SearchPage />} />
+                <Route path="/post" element={<PostPage />} />
+                <Route path="/messages" element={<MessagesPage />} />
+                <Route path="/profile" element={<ProfilePage />} />
+                <Route path="/location-settings" element={<LocationSettingsPage />} />
+                <Route path="/relays" element={<RelaysPage />} />
+                <Route path="/boost" element={<BoostPage />} />
+                <Route path="/map-full" element={<FullMapPage />} />
+                <Route path="/edit-profile" element={<EditProfilePage />} />
+                <Route path="/professional/:id" element={<ProfessionalProfilePage />} />
+                <Route path="/notifications" element={<NotificationsPage />} />
+              </Route>
+              <Route path="/chat/:chatId" element={<ChatPage />} />
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/onboarding" element={<OnboardingPage />} />
+            </Routes>
+            <InstallPrompt />
+            <UpdatePrompt />
+            <NotificationPermissionPrompt />
+          </BrowserRouter>
+        </ReviewProvider>
+      </NotificationProvider>
+    </AuthProvider>
   );
 }
 

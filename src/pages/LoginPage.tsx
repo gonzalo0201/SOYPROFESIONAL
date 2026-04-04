@@ -2,34 +2,60 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, Mail, Lock, User, ArrowRight, Wrench } from 'lucide-react';
 import clsx from 'clsx';
+import { useAuth } from '../contexts/AuthContext';
 
 type AuthMode = 'login' | 'register';
 
 export function LoginPage() {
     const navigate = useNavigate();
+    const { signIn, signUp, signInWithGoogle } = useAuth();
     const [mode, setMode] = useState<AuthMode>('login');
     const [showPassword, setShowPassword] = useState(false);
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [name, setName] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsLoading(true);
-        // Simulate API call
-        setTimeout(() => {
+        setError(null);
+
+        try {
+            if (mode === 'register') {
+                const { error: signUpError } = await signUp(email, password, name);
+                if (signUpError) {
+                    setError(signUpError);
+                    setIsLoading(false);
+                    return;
+                }
+                navigate('/onboarding');
+            } else {
+                const { error: signInError } = await signIn(email, password);
+                if (signInError) {
+                    setError(signInError);
+                    setIsLoading(false);
+                    return;
+                }
+                navigate('/');
+            }
+        } catch {
+            setError('Ocurrió un error inesperado');
+        } finally {
             setIsLoading(false);
-            navigate(mode === 'register' ? '/onboarding' : '/');
-        }, 1500);
+        }
     };
 
-    const handleGoogleLogin = () => {
+    const handleGoogleLogin = async () => {
         setIsLoading(true);
-        setTimeout(() => {
+        setError(null);
+        const { error: googleError } = await signInWithGoogle();
+        if (googleError) {
+            setError(googleError);
             setIsLoading(false);
-            navigate('/');
-        }, 1000);
+        }
+        // Google OAuth will redirect, so no need to navigate
     };
 
     return (
@@ -62,7 +88,7 @@ export function LoginPage() {
                 {/* Tabs */}
                 <div className="bg-white/5 backdrop-blur-sm rounded-xl p-1 flex mb-6 border border-white/10">
                     <button
-                        onClick={() => setMode('login')}
+                        onClick={() => { setMode('login'); setError(null); }}
                         className={clsx(
                             "flex-1 py-2.5 rounded-lg text-sm font-bold transition-all",
                             mode === 'login'
@@ -73,7 +99,7 @@ export function LoginPage() {
                         Iniciar sesión
                     </button>
                     <button
-                        onClick={() => setMode('register')}
+                        onClick={() => { setMode('register'); setError(null); }}
                         className={clsx(
                             "flex-1 py-2.5 rounded-lg text-sm font-bold transition-all",
                             mode === 'register'
@@ -84,6 +110,13 @@ export function LoginPage() {
                         Registrarse
                     </button>
                 </div>
+
+                {/* Error message */}
+                {error && (
+                    <div className="bg-red-500/15 border border-red-500/30 rounded-xl px-4 py-3 mb-4 animate-in fade-in">
+                        <p className="text-red-400 text-sm text-center">{error}</p>
+                    </div>
+                )}
 
                 {/* Form */}
                 <form onSubmit={handleSubmit} className="space-y-4">
@@ -96,6 +129,7 @@ export function LoginPage() {
                                 value={name}
                                 onChange={(e) => setName(e.target.value)}
                                 placeholder="Nombre completo"
+                                required
                                 className="w-full bg-white/10 backdrop-blur-sm border border-white/10 rounded-xl pl-12 pr-4 py-3.5 text-white text-sm placeholder:text-slate-400 outline-none focus:border-emerald-400/50 focus:bg-white/15 transition-all"
                             />
                         </div>
@@ -109,6 +143,7 @@ export function LoginPage() {
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             placeholder="Email"
+                            required
                             className="w-full bg-white/10 backdrop-blur-sm border border-white/10 rounded-xl pl-12 pr-4 py-3.5 text-white text-sm placeholder:text-slate-400 outline-none focus:border-emerald-400/50 focus:bg-white/15 transition-all"
                         />
                     </div>
@@ -121,6 +156,8 @@ export function LoginPage() {
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             placeholder="Contraseña"
+                            required
+                            minLength={6}
                             className="w-full bg-white/10 backdrop-blur-sm border border-white/10 rounded-xl pl-12 pr-12 py-3.5 text-white text-sm placeholder:text-slate-400 outline-none focus:border-emerald-400/50 focus:bg-white/15 transition-all"
                         />
                         <button
