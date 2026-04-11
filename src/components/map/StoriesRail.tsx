@@ -1,12 +1,13 @@
-import { MOCK_PROFESSIONALS } from '../../data/mockUsers';
 import { Flame } from 'lucide-react';
 import clsx from 'clsx';
+import type { ProfessionalDisplay } from '../../hooks/useProfessionals';
 
 interface StoriesRailProps {
-    onSelectProfessional: (id: number) => void;
+    professionals: ProfessionalDisplay[];
+    onSelectProfessional: (id: string) => void;
 }
 
-export function StoriesRail({ onSelectProfessional }: StoriesRailProps) {
+export function StoriesRail({ professionals, onSelectProfessional }: StoriesRailProps) {
     return (
         <div className="overflow-x-auto no-scrollbar py-4 pl-4 bg-white border-b border-slate-100">
             <div className="flex gap-4 min-w-max pr-4">
@@ -18,7 +19,7 @@ export function StoriesRail({ onSelectProfessional }: StoriesRailProps) {
                     <span className="text-[10px] font-medium text-slate-700">Tu historia</span>
                 </button>
 
-                {MOCK_PROFESSIONALS.map((pro) => (
+                {professionals.map((pro) => (
                     <button
                         key={pro.id}
                         onClick={() => onSelectProfessional(pro.id)}

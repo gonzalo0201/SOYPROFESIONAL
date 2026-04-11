@@ -1,4 +1,7 @@
-import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, useRef, type ReactNode } from 'react';
+import { supabase } from '../lib/supabase';
+import { useAuth } from './AuthContext';
+import type { Message } from '../lib/database.types';
 
 type PermissionStatus = 'default' | 'granted' | 'denied' | 'unsupported';
 
@@ -7,6 +10,7 @@ interface NotificationContextType {
     isSupported: boolean;
     isPushEnabled: boolean;
     showPrompt: boolean;
+    unreadTotal: number;
     requestPermission: () => Promise<boolean>;
     sendTestNotification: (type?: string) => void;
     dismissPrompt: () => void;
@@ -44,10 +48,14 @@ const TEST_NOTIFICATIONS: Record<string, { title: string; body: string; tag: str
 };
 
 export function NotificationProvider({ children }: { children: ReactNode }) {
+    const { user } = useAuth();
     const [permission, setPermission] = useState<PermissionStatus>('default');
     const [isSupported, setIsSupported] = useState(false);
     const [isPushEnabled, setIsPushEnabled] = useState(true);
     const [showPrompt, setShowPrompt] = useState(false);
+    const [unreadTotal, setUnreadTotal] = useState(0);
+    const activeConversationRef = useRef<string | null>(null);
+    const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
 
     useEffect(() => {
         // Check if notifications API is supported
@@ -98,6 +106,121 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
         navigator.serviceWorker.addEventListener('message', handleMessage);
         return () => navigator.serviceWorker.removeEventListener('message', handleMessage);
     }, [isSupported]);
+
+    // ============================================
+    // REAL-TIME MESSAGE NOTIFICATIONS
+    // ============================================
+
+    // Fetch initial unread count
+    useEffect(() => {
+        if (!user) {
+            setUnreadTotal(0);
+            return;
+        }
+
+        async function fetchUnread() {
+            const { count } = await supabase
+                .from('messages')
+                .select('*', { count: 'exact', head: true })
+                .eq('receiver_id', user!.id)
+                .eq('read', false);
+
+            setUnreadTotal(count || 0);
+        }
+
+        fetchUnread();
+    }, [user]);
+
+    // Subscribe to new messages for the current user → send local notification
+    useEffect(() => {
+        if (!user) return;
+
+        // Clean up previous channel
+        if (channelRef.current) {
+            supabase.removeChannel(channelRef.current);
+        }
+
+        const channel = supabase
+            .channel(`global-messages:${user.id}`)
+            .on(
+                'postgres_changes',
+                {
+                    event: 'INSERT',
+                    schema: 'public',
+                    table: 'messages',
+                    filter: `receiver_id=eq.${user.id}`,
+                },
+                async (payload) => {
+                    const msg = payload.new as Message;
+
+                    // Update unread count
+                    setUnreadTotal(prev => prev + 1);
+
+                    // Don't notify if the user is looking at that conversation
+                    if (activeConversationRef.current === msg.conversation_id) {
+                        return;
+                    }
+
+                    // Don't notify if push is disabled
+                    if (!isPushEnabled) return;
+
+                    // Get sender's name
+                    let senderName = 'Alguien';
+                    const { data: senderProfile } = await supabase
+                        .from('profiles')
+                        .select('name')
+                        .eq('id', msg.sender_id)
+                        .single();
+
+                    if (senderProfile) {
+                        senderName = senderProfile.name;
+                    }
+
+                    // Send local notification via service worker
+                    if (permission === 'granted' && 'serviceWorker' in navigator) {
+                        try {
+                            const registration = await navigator.serviceWorker.ready;
+                            await registration.showNotification(`💬 ${senderName}`, {
+                                body: msg.content.length > 100
+                                    ? msg.content.substring(0, 97) + '...'
+                                    : msg.content,
+                                icon: '/icons/icon-512.png',
+                                badge: '/icons/icon-512.png',
+                                tag: `message-${msg.conversation_id}`,
+                                renotify: true,
+                                data: {
+                                    url: `/chat/${msg.conversation_id}`,
+                                    conversationId: msg.conversation_id,
+                                },
+                                vibrate: [200, 100, 200],
+                            } as NotificationOptions);
+                        } catch (err) {
+                            console.error('[Notifications] Error showing notification:', err);
+                        }
+                    }
+                }
+            )
+            .subscribe();
+
+        channelRef.current = channel;
+
+        return () => {
+            supabase.removeChannel(channel);
+            channelRef.current = null;
+        };
+    }, [user, isPushEnabled, permission]);
+
+    // Expose a way for ChatPage to tell us which conversation is active
+    // This prevents notifications for the conversation the user is currently viewing
+    useEffect(() => {
+        const handleVisibility = () => {
+            if (document.hidden) {
+                // User switched tabs / minimized — keep tracking
+            }
+        };
+        document.addEventListener('visibilitychange', handleVisibility);
+        return () => document.removeEventListener('visibilitychange', handleVisibility);
+    }, []);
 
     const requestPermission = useCallback(async (): Promise<boolean> => {
         if (!isSupported) return false;
@@ -153,6 +276,16 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
         localStorage.setItem('sp_push_enabled', String(next));
     }, [isPushEnabled]);
 
+    // Make the active conversation setter available globally
+    useEffect(() => {
+        (window as any).__setActiveConversation = (id: string | null) => {
+            activeConversationRef.current = id;
+        };
+        return () => {
+            delete (window as any).__setActiveConversation;
+        };
+    }, []);
+
     return (
         <NotificationContext.Provider
             value={{
@@ -160,6 +293,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
                 isSupported,
                 isPushEnabled,
                 showPrompt,
+                unreadTotal,
                 requestPermission,
                 sendTestNotification,
                 dismissPrompt,
@@ -175,4 +309,14 @@ export function useNotifications() {
     const ctx = useContext(NotificationContext);
     if (!ctx) throw new Error('useNotifications must be used inside <NotificationProvider>');
     return ctx;
+}
+
+/**
+ * Call this from ChatPage to mark which conversation is currently active
+ * This prevents sending notifications for messages the user is already viewing
+ */
+export function setActiveConversation(conversationId: string | null) {
+    if ((window as any).__setActiveConversation) {
+        (window as any).__setActiveConversation(conversationId);
+    }
 }

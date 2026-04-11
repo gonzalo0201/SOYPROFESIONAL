@@ -1,11 +1,10 @@
-import type { Trade } from '../../data/mockUsers';
 import clsx from 'clsx';
 
-const trades: Trade[] = ['Gasista', 'Plomero', 'Electricista', 'Albañil', 'Carpintero'];
+const trades = ['Gasista', 'Plomero', 'Electricista', 'Albañil', 'Carpintero'];
 
 interface FilterBarProps {
-    selectedTrade: Trade | null;
-    onSelectTrade: (trade: Trade | null) => void;
+    selectedTrade: string | null;
+    onSelectTrade: (trade: string | null) => void;
 }
 
 export function FilterBar({ selectedTrade, onSelectTrade }: FilterBarProps) {

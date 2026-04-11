@@ -1,17 +1,18 @@
-import { Search, Filter, Trophy, X } from 'lucide-react';
+import { Search, Filter, Trophy, X, Loader2 } from 'lucide-react';
 import { useState } from 'react';
-import { MOCK_PROFESSIONALS } from '../data/mockUsers';
+import { useProfessionals } from '../hooks/useProfessionals';
 import { ProfessionalCard } from '../components/ProfessionalCard';
 import { RankingModal } from '../components/search/RankingModal';
 import { FilterModal } from '../components/search/FilterModal';
 
 export function SearchPage() {
+    const { professionals, isLoading } = useProfessionals();
     const [searchTerm, setSearchTerm] = useState('');
     const [isRankingOpen, setIsRankingOpen] = useState(false);
     const [isFilterOpen, setIsFilterOpen] = useState(false);
     const [activeFilter, setActiveFilter] = useState<string | null>(null);
 
-    const filteredPros = MOCK_PROFESSIONALS.filter(pro => {
+    const filteredPros = professionals.filter(pro => {
         const matchesSearch = pro.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
             pro.trade.toLowerCase().includes(searchTerm.toLowerCase()) ||
             (activeFilter && activeFilter.toLowerCase().includes(pro.trade.toLowerCase()));
@@ -80,15 +81,24 @@ export function SearchPage() {
 
             {/* Results Count */}
             <div className="px-4 pt-3 pb-2">
-                <p className="text-slate-500 text-sm">{filteredPros.length} profesionales en Buenos Aires</p>
+                <p className="text-slate-500 text-sm">
+                    {isLoading ? 'Cargando...' : `${filteredPros.length} profesionales en Buenos Aires`}
+                </p>
             </div>
 
             {/* Results List */}
-            <div className="p-4 space-y-4">
-                {filteredPros.map(pro => (
-                    <ProfessionalCard key={pro.id} professional={pro} />
-                ))}
-            </div>
+            {isLoading ? (
+                <div className="flex flex-col items-center py-12 gap-3">
+                    <Loader2 size={28} className="text-emerald-500 animate-spin" />
+                    <p className="text-slate-400 text-sm">Cargando profesionales...</p>
+                </div>
+            ) : (
+                <div className="p-4 space-y-4">
+                    {filteredPros.map(pro => (
+                        <ProfessionalCard key={pro.id} professional={pro} />
+                    ))}
+                </div>
+            )}
 
             {/* Modals */}
             <RankingModal isOpen={isRankingOpen} onClose={() => setIsRankingOpen(false)} />

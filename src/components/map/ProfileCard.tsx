@@ -1,10 +1,10 @@
 import { Star, CheckCircle, MessageCircle, Flame } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import type { Professional } from '../../data/mockUsers';
+import type { ProfessionalDisplay } from '../../hooks/useProfessionals';
 import clsx from 'clsx';
 
 interface ProfileCardProps {
-    professional: Professional;
+    professional: ProfessionalDisplay;
     onClose: () => void;
 }
 

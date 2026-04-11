@@ -1,8 +1,7 @@
 import L from 'leaflet';
-import type { Trade } from '../../data/mockUsers';
 
 // Helper to get color class (we won't use this directly in HTML string but good to have)
-const getTradeColor = (trade: Trade) => {
+const getTradeColor = (trade: string) => {
   switch (trade) {
     case 'Gasista': return '#f97316'; // orange-500
     case 'Plomero': return '#3b82f6'; // blue-500
@@ -13,7 +12,7 @@ const getTradeColor = (trade: Trade) => {
   }
 };
 
-export const getTradeIcon = (trade: Trade, isSelected: boolean) => {
+export const getTradeIcon = (trade: string, isSelected: boolean) => {
   const color = getTradeColor(trade);
   const size = isSelected ? 40 : 32;
   const border = isSelected ? '4px solid rgba(255,255,255,0.8)' : '2px solid white';

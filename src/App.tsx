@@ -11,11 +11,13 @@ import { BoostPage } from './pages/BoostPage';
 import { FullMapPage } from './pages/FullMapPage';
 import { EditProfilePage } from './pages/EditProfilePage';
 import { ChatPage } from './pages/ChatPage';
+import { NewChatPage } from './pages/NewChatPage';
 import { ProfessionalProfilePage } from './pages/ProfessionalProfilePage';
 import { LoginPage } from './pages/LoginPage';
 import { OnboardingPage } from './pages/OnboardingPage';
 import { NotificationsPage } from './pages/NotificationsPage';
 import { ReviewProvider } from './contexts/ReviewContext';
+import { LocationProvider } from './contexts/LocationContext';
 import { NotificationProvider } from './contexts/NotificationContext';
 import { AuthProvider } from './contexts/AuthContext';
 import { InstallPrompt } from './components/InstallPrompt';
@@ -26,6 +28,7 @@ import { NotificationPermissionPrompt } from './components/NotificationPermissio
 function App() {
   return (
     <AuthProvider>
+      <LocationProvider>
       <NotificationProvider>
         <ReviewProvider>
           <BrowserRouter>
@@ -44,6 +47,7 @@ function App() {
                 <Route path="/professional/:id" element={<ProfessionalProfilePage />} />
                 <Route path="/notifications" element={<NotificationsPage />} />
               </Route>
+              <Route path="/chat/new/:professionalId" element={<NewChatPage />} />
               <Route path="/chat/:chatId" element={<ChatPage />} />
               <Route path="/login" element={<LoginPage />} />
               <Route path="/onboarding" element={<OnboardingPage />} />
@@ -54,6 +58,7 @@ function App() {
           </BrowserRouter>
         </ReviewProvider>
       </NotificationProvider>
+      </LocationProvider>
     </AuthProvider>
   );
 }

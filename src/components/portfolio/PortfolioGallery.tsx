@@ -7,7 +7,7 @@ import clsx from 'clsx';
 
 interface PortfolioGalleryProps {
     items: PortfolioItem[];
-    professionalId: number;
+    professionalId: string | number;
 }
 
 export function PortfolioGallery({ items, professionalId }: PortfolioGalleryProps) {

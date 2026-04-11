@@ -12,7 +12,7 @@ interface PortfolioViewerProps {
 
 export function PortfolioViewer({ items, initialIndex, onClose }: PortfolioViewerProps) {
     const [currentIndex, setCurrentIndex] = useState(initialIndex);
-    const [isLiked, setIsLiked] = useState<Record<number, boolean>>({});
+    const [isLiked, setIsLiked] = useState<Record<string | number, boolean>>({});
     const [isEntering, setIsEntering] = useState(true);
     const [touchStart, setTouchStart] = useState<number | null>(null);
     const [touchDiff, setTouchDiff] = useState(0);

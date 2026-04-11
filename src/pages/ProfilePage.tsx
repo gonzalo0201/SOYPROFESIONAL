@@ -1,18 +1,20 @@
-import { Link } from 'react-router-dom';
-import { User, Settings, Shield, Star, ChevronRight, CheckCircle, LogOut, MapPin, Users, Flame, Bell, BellOff, Send } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { User, Settings, Shield, Star, ChevronRight, CheckCircle, LogOut, MapPin, Users, Flame, Bell, BellOff, Send, Loader2 } from 'lucide-react';
 import { useNotifications } from '../contexts/NotificationContext';
+import { useAuth } from '../contexts/AuthContext';
+import { useEffect } from 'react';
 
 export function ProfilePage() {
     const { permission, isSupported, isPushEnabled, togglePush, requestPermission, sendTestNotification } = useNotifications();
+    const { user, profile, isLoading, signOut } = useAuth();
+    const navigate = useNavigate();
 
-    // Mock current user data
-    const user = {
-        name: "Juan Pérez",
-        email: "juan.perez@email.com",
-        role: "Gasista Matriculado",
-        isVerified: true,
-        image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop"
-    };
+    // Redirect to login if not authenticated
+    useEffect(() => {
+        if (!isLoading && !user) {
+            navigate('/login');
+        }
+    }, [isLoading, user, navigate]);
 
     const menuItems = [
         { icon: User, label: "Editar perfil", desc: "Foto, nombre, profesión", path: "/edit-profile" },
@@ -31,21 +33,48 @@ export function ProfilePage() {
         }
     };
 
+    const handleSignOut = async () => {
+        await signOut();
+        navigate('/login');
+    };
+
+    // Show loading state
+    if (isLoading) {
+        return (
+            <div className="bg-slate-50 min-h-full flex items-center justify-center">
+                <div className="flex flex-col items-center gap-3">
+                    <Loader2 size={32} className="text-emerald-500 animate-spin" />
+                    <p className="text-slate-400 text-sm">Cargando perfil...</p>
+                </div>
+            </div>
+        );
+    }
+
+    // Use real data from Supabase, with fallbacks
+    const userName = profile?.name || user?.user_metadata?.name || 'Usuario';
+    const userEmail = profile?.email || user?.email || '';
+    const userRole = profile?.role === 'professional' ? 'Profesional' : 'Cliente';
+    const userAvatar = profile?.avatar_url || user?.user_metadata?.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=10b981&color=fff&bold=true`;
+    const isVerified = profile?.role === 'professional'; // Simplified for now
+
     return (
         <div className="bg-slate-50 min-h-full pb-6">
             <header className="bg-slate-800 text-white p-6 pb-12 rounded-b-[2rem] shadow-lg relative overflow-hidden">
                 <div className="relative z-10 flex flex-col items-center">
                     <div className="w-24 h-24 rounded-full border-4 border-white/30 mb-4 overflow-hidden relative shadow-xl">
-                        <img src={user.image} alt="Profile" className="w-full h-full object-cover" />
+                        <img src={userAvatar} alt="Profile" className="w-full h-full object-cover" />
                     </div>
 
                     <div className="flex items-center gap-2 mb-1">
-                        <h1 className="text-2xl font-bold text-white">{user.name}</h1>
-                        {user.isVerified && <CheckCircle className="text-emerald-400 fill-white" size={20} />}
+                        <h1 className="text-2xl font-bold text-white">{userName}</h1>
+                        {isVerified && <CheckCircle className="text-emerald-400 fill-white" size={20} />}
                     </div>
-                    <p className="text-slate-300 font-medium text-sm">{user.role}</p>
+                    <p className="text-slate-300 font-medium text-sm">{userRole}</p>
+                    {userEmail && (
+                        <p className="text-slate-400 text-xs mt-1">{userEmail}</p>
+                    )}
 
-                    {!user.isVerified && (
+                    {!isVerified && (
                         <button className="mt-4 bg-white/10 backdrop-blur-md px-4 py-1.5 rounded-full text-sm font-medium border border-white/20 hover:bg-white/20 transition-colors">
                             Verificar mi cuenta
                         </button>
@@ -167,7 +196,10 @@ export function ProfilePage() {
                     })}
                 </div>
 
-                <button className="w-full mt-6 flex items-center justify-center gap-2 text-red-500 font-medium py-3 hover:bg-red-50 rounded-xl transition-colors">
+                <button
+                    onClick={handleSignOut}
+                    className="w-full mt-6 flex items-center justify-center gap-2 text-red-500 font-medium py-3 hover:bg-red-50 rounded-xl transition-colors"
+                >
                     <LogOut size={18} />
                     Cerrar sesión
                 </button>

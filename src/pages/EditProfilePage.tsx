@@ -1,7 +1,9 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Camera, Plus, X, ChevronDown, ChevronUp, Trash2, Briefcase } from 'lucide-react';
+import { ArrowLeft, Camera, Plus, X, ChevronDown, ChevronUp, Trash2, Briefcase, Loader2, CheckCircle2 } from 'lucide-react';
 import { CATEGORIES } from '../data/mockCategories';
+import { useAuth } from '../contexts/AuthContext';
+import { uploadAvatar, compressImage } from '../services/storage';
 import clsx from 'clsx';
 
 interface ProfessionEntry {
@@ -18,14 +20,42 @@ let nextId = 3;
 
 export function EditProfilePage() {
     const navigate = useNavigate();
+    const { user, profile, isLoading: authLoading, updateProfile } = useAuth();
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
-    // Form state
-    const [photo] = useState('https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop');
-    const [name, setName] = useState('Juan');
-    const [lastName, setLastName] = useState('Pérez');
-    const [email, setEmail] = useState('juan.perez@email.com');
-    const [age, setAge] = useState('35');
-    const [address, setAddress] = useState('Av. Colón 1234, Bahía Blanca');
+    // Form state - initialized from auth context
+    const [photo, setPhoto] = useState('');
+    const [name, setName] = useState('');
+    const [lastName, setLastName] = useState('');
+    const [email, setEmail] = useState('');
+    const [age, setAge] = useState('');
+    const [address, setAddress] = useState('');
+
+    // Upload states
+    const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+    const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+    const [isSaving, setIsSaving] = useState(false);
+    const [saveSuccess, setSaveSuccess] = useState(false);
+    const [uploadError, setUploadError] = useState<string | null>(null);
+
+    // Initialize form with real data
+    useEffect(() => {
+        if (profile) {
+            const fullName = profile.name || '';
+            const parts = fullName.split(' ');
+            setName(parts[0] || '');
+            setLastName(parts.slice(1).join(' ') || '');
+            setEmail(profile.email || '');
+            setPhoto(profile.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=10b981&color=fff&bold=true`);
+        } else if (user) {
+            const fullName = user.user_metadata?.name || '';
+            const parts = fullName.split(' ');
+            setName(parts[0] || '');
+            setLastName(parts.slice(1).join(' ') || '');
+            setEmail(user.email || '');
+            setPhoto(user.user_metadata?.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=10b981&color=fff&bold=true`);
+        }
+    }, [profile, user]);
 
     // Multiple professions
     const [professions, setProfessions] = useState<ProfessionEntry[]>([
@@ -66,7 +96,7 @@ export function EditProfilePage() {
     };
 
     const removeProfession = (id: number) => {
-        if (professions.length <= 1) return; // Keep at least one
+        if (professions.length <= 1) return;
         setProfessions(prev => prev.filter(p => p.id !== id));
     };
 
@@ -88,9 +118,102 @@ export function EditProfilePage() {
         });
     };
 
-    const handleSave = () => {
-        navigate(-1);
+    // Handle avatar file selection
+    const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file || !user) return;
+
+        // Validate file type
+        if (!file.type.startsWith('image/')) {
+            setUploadError('Solo se permiten imágenes');
+            return;
+        }
+
+        // Validate file size (max 5MB)
+        if (file.size > 5 * 1024 * 1024) {
+            setUploadError('La imagen no puede superar los 5MB');
+            return;
+        }
+
+        setUploadError(null);
+        setIsUploadingAvatar(true);
+
+        try {
+            // Show preview immediately
+            const previewUrl = URL.createObjectURL(file);
+            setAvatarPreview(previewUrl);
+
+            // Compress before upload
+            const compressed = await compressImage(file, 800, 0.85);
+
+            // Upload to Supabase Storage
+            const { url, error } = await uploadAvatar(user.id, compressed);
+
+            if (error) {
+                setUploadError(error);
+                setAvatarPreview(null);
+            } else if (url) {
+                // Add cache-buster to force reload
+                setPhoto(url + '?t=' + Date.now());
+                setAvatarPreview(null);
+            }
+        } catch (err) {
+            console.error('Error uploading avatar:', err);
+            setUploadError('Error al subir la imagen');
+            setAvatarPreview(null);
+        } finally {
+            setIsUploadingAvatar(false);
+            // Reset file input
+            if (fileInputRef.current) {
+                fileInputRef.current.value = '';
+            }
+        }
     };
+
+    const handleSave = async () => {
+        if (!user) return;
+
+        setIsSaving(true);
+        setSaveSuccess(false);
+
+        const fullName = `${name} ${lastName}`.trim();
+
+        const { error } = await updateProfile({
+            name: fullName,
+            email: email,
+        });
+
+        setIsSaving(false);
+
+        if (error) {
+            setUploadError(error);
+        } else {
+            setSaveSuccess(true);
+            setTimeout(() => {
+                navigate(-1);
+            }, 800);
+        }
+    };
+
+    // Redirect if not logged in
+    useEffect(() => {
+        if (!authLoading && !user) {
+            navigate('/login');
+        }
+    }, [authLoading, user, navigate]);
+
+    if (authLoading) {
+        return (
+            <div className="bg-slate-50 min-h-screen flex items-center justify-center">
+                <div className="flex flex-col items-center gap-3">
+                    <Loader2 size={32} className="text-emerald-500 animate-spin" />
+                    <p className="text-slate-400 text-sm">Cargando perfil...</p>
+                </div>
+            </div>
+        );
+    }
+
+    const displayPhoto = avatarPreview || photo;
 
     return (
         <div className="bg-slate-50 min-h-screen flex flex-col pb-24">
@@ -102,9 +225,20 @@ export function EditProfilePage() {
                 <h1 className="text-xl font-bold text-slate-900 flex-1">Editar Perfil</h1>
                 <button
                     onClick={handleSave}
-                    className="bg-emerald-500 text-white px-5 py-2 rounded-xl font-bold text-sm hover:bg-emerald-600 transition-colors"
+                    disabled={isSaving}
+                    className={clsx(
+                        "px-5 py-2 rounded-xl font-bold text-sm transition-all flex items-center gap-2",
+                        saveSuccess
+                            ? "bg-emerald-100 text-emerald-700"
+                            : "bg-emerald-500 text-white hover:bg-emerald-600 disabled:opacity-50"
+                    )}
                 >
-                    Guardar
+                    {isSaving ? (
+                        <Loader2 size={16} className="animate-spin" />
+                    ) : saveSuccess ? (
+                        <CheckCircle2 size={16} />
+                    ) : null}
+                    {saveSuccess ? 'Guardado!' : 'Guardar'}
                 </button>
             </div>
 
@@ -113,14 +247,38 @@ export function EditProfilePage() {
                 {/* Photo Section */}
                 <div className="flex flex-col items-center py-4">
                     <div className="relative group">
-                        <div className="w-28 h-28 rounded-full overflow-hidden border-4 border-white shadow-lg">
-                            <img src={photo} alt="Profile" className="w-full h-full object-cover" />
+                        <div className={clsx(
+                            "w-28 h-28 rounded-full overflow-hidden border-4 shadow-lg transition-all",
+                            isUploadingAvatar ? "border-emerald-300 animate-pulse" : "border-white"
+                        )}>
+                            <img src={displayPhoto} alt="Profile" className="w-full h-full object-cover" />
+                            {isUploadingAvatar && (
+                                <div className="absolute inset-0 bg-black/40 flex items-center justify-center rounded-full">
+                                    <Loader2 size={28} className="text-white animate-spin" />
+                                </div>
+                            )}
                         </div>
-                        <button className="absolute bottom-0 right-0 bg-emerald-500 text-white p-2.5 rounded-full shadow-lg border-2 border-white hover:bg-emerald-600 transition-colors">
+                        <button
+                            onClick={() => fileInputRef.current?.click()}
+                            disabled={isUploadingAvatar}
+                            className="absolute bottom-0 right-0 bg-emerald-500 text-white p-2.5 rounded-full shadow-lg border-2 border-white hover:bg-emerald-600 transition-colors disabled:opacity-50"
+                        >
                             <Camera size={16} />
                         </button>
+                        <input
+                            ref={fileInputRef}
+                            type="file"
+                            accept="image/jpeg,image/png,image/webp,image/gif"
+                            onChange={handleAvatarChange}
+                            className="hidden"
+                        />
                     </div>
-                    <p className="text-xs text-slate-400 mt-3">Toca para cambiar tu foto</p>
+                    <p className="text-xs text-slate-400 mt-3">
+                        {isUploadingAvatar ? 'Subiendo foto...' : 'Toca para cambiar tu foto'}
+                    </p>
+                    {uploadError && (
+                        <p className="text-xs text-red-500 mt-1 font-medium">{uploadError}</p>
+                    )}
                 </div>
 
                 {/* Personal Info Section */}

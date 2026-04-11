@@ -1,9 +1,9 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { X, ChevronLeft, ChevronRight, Clock } from 'lucide-react';
-import type { Professional } from '../../data/mockUsers';
+import type { ProfessionalDisplay } from '../../hooks/useProfessionals';
 
 interface StoryViewerProps {
-    professional: Professional;
+    professional: ProfessionalDisplay;
     onClose: () => void;
     onNext?: () => void;
     onPrev?: () => void;
@@ -11,27 +11,28 @@ interface StoryViewerProps {
     hasPrev: boolean;
 }
 
-// Mock story content for each professional
-function getStoryContent(pro: Professional) {
-    const stories: Record<number, { image: string; caption: string; timeAgo: string }[]> = {
-        1: [
-            { image: 'https://images.unsplash.com/photo-1581094794329-c8112a89af12?w=600&h=900&fit=crop', caption: '✅ Instalación de calefón Orbis completada. ¡Cliente feliz! 🔥', timeAgo: '2h' },
+// Mock story content for each professional (will be replaced with Supabase stories later)
+function getStoryContent(pro: ProfessionalDisplay) {
+    // For now, generate generic story content based on the professional's trade
+    const tradeStories: Record<string, { image: string; caption: string; timeAgo: string }[]> = {
+        'Gasista': [
+            { image: 'https://images.unsplash.com/photo-1581094794329-c8112a89af12?w=600&h=900&fit=crop', caption: '✅ Instalación completada. ¡Cliente feliz! 🔥', timeAgo: '2h' },
             { image: 'https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?w=600&h=900&fit=crop', caption: 'Certificación de gas en departamento. Siempre con seguridad 🛡️', timeAgo: '5h' },
         ],
-        2: [
+        'Electricista': [
             { image: 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?w=600&h=900&fit=crop', caption: '⚡ Tablero eléctrico nuevo. De 4 a 12 módulos 💪', timeAgo: '1h' },
         ],
-        3: [
+        'Plomero': [
             { image: 'https://images.unsplash.com/photo-1585704032915-c3400ca199e7?w=600&h=900&fit=crop', caption: '🔧 Reparación de cañería. Problema solucionado en 1 hora 🚿', timeAgo: '4h' },
         ],
-        4: [
-            { image: 'https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=600&h=900&fit=crop', caption: '🏠 Pintura completa de living. ¡Transformación total!', timeAgo: '3h' },
+        'Albañil': [
+            { image: 'https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=600&h=900&fit=crop', caption: '🏠 Revoque completo de living. ¡Transformación total!', timeAgo: '3h' },
         ],
-        5: [
-            { image: 'https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=600&h=900&fit=crop', caption: '❄️ Instalación de split frío/calor. Listo para el verano ☀️', timeAgo: '6h' },
+        'Carpintero': [
+            { image: 'https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=600&h=900&fit=crop', caption: '🪵 Mueble a medida terminado. Trabajos garantizados ✨', timeAgo: '6h' },
         ],
     };
-    return stories[pro.id] || [
+    return tradeStories[pro.trade] || [
         { image: pro.image, caption: `${pro.name} - ${pro.trade}`, timeAgo: '1h' }
     ];
 }

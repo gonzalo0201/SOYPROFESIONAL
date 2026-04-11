@@ -1,10 +1,10 @@
 import { Star, CheckCircle, MessageCircle, Phone, MapPin, Flame } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import clsx from 'clsx';
-import type { Professional } from '../data/mockUsers';
+import type { ProfessionalDisplay } from '../hooks/useProfessionals';
 
 interface ProfessionalCardProps {
-    professional: Professional;
+    professional: ProfessionalDisplay;
 }
 
 export function ProfessionalCard({ professional: pro }: ProfessionalCardProps) {
@@ -85,7 +85,10 @@ export function ProfessionalCard({ professional: pro }: ProfessionalCardProps) {
 
             {/* Action Buttons */}
             <div className="flex items-center gap-3">
-                <button className="flex-1 bg-slate-800 text-white py-2.5 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 hover:bg-slate-700 active:scale-95 transition-all">
+                <button
+                    onClick={(e) => { e.stopPropagation(); navigate(`/chat/new/${pro.id}`); }}
+                    className="flex-1 bg-slate-800 text-white py-2.5 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 hover:bg-slate-700 active:scale-95 transition-all"
+                >
                     <MessageCircle size={18} />
                     Mensaje
                 </button>

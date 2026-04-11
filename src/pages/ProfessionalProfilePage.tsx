@@ -1,20 +1,29 @@
 import { useNavigate, useParams, Link } from 'react-router-dom';
-import { ArrowLeft, Star, CheckCircle, MapPin, MessageCircle, Phone, Share2, Heart, Clock, Briefcase, ShieldCheck } from 'lucide-react';
-import { MOCK_PROFESSIONALS } from '../data/mockUsers';
-import { getPortfolioFor } from '../data/mockPortfolio';
+import { ArrowLeft, Star, CheckCircle, MapPin, MessageCircle, Phone, Share2, Heart, Clock, Briefcase, ShieldCheck, Loader2 } from 'lucide-react';
+import { useProfessional } from '../hooks/useProfessionals';
+import { useSupabaseReviews } from '../hooks/useSupabaseReviews';
+import { useSupabasePortfolio } from '../hooks/useSupabasePortfolio';
 import { PortfolioGallery } from '../components/portfolio/PortfolioGallery';
-import { useReviews } from '../contexts/ReviewContext';
 import clsx from 'clsx';
 
 
 export function ProfessionalProfilePage() {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
-    const professional = MOCK_PROFESSIONALS.find(p => p.id === Number(id));
-    const portfolio = getPortfolioFor(Number(id));
-    const { getReviewsFor } = useReviews();
+    const { professional, isLoading: proLoading } = useProfessional(id);
+    const { reviews, isLoading: reviewsLoading } = useSupabaseReviews(id);
+    const { portfolio, isLoading: portfolioLoading } = useSupabasePortfolio(id);
 
-    const reviews = getReviewsFor(Number(id));
+    if (proLoading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-slate-50">
+                <div className="flex flex-col items-center gap-3">
+                    <Loader2 size={32} className="text-emerald-500 animate-spin" />
+                    <p className="text-slate-400 text-sm">Cargando perfil...</p>
+                </div>
+            </div>
+        );
+    }
 
     if (!professional) {
         return (
@@ -62,6 +71,21 @@ export function ProfessionalProfilePage() {
         if (diffDays < 30) return `Hace ${Math.floor(diffDays / 7)} semana${Math.floor(diffDays / 7) > 1 ? 's' : ''}`;
         return `Hace ${Math.floor(diffDays / 30)} mes${Math.floor(diffDays / 30) > 1 ? 'es' : ''}`;
     };
+
+    // Convert portfolio to the format PortfolioGallery expects
+    const portfolioItems = portfolio.map(p => ({
+        id: p.id,
+        professionalId: p.professionalId,
+        images: p.images,
+        caption: p.caption,
+        description: p.description,
+        date: p.date,
+        category: p.category as 'antes-despues' | 'en-progreso' | 'terminado' | 'general',
+        tags: p.tags,
+        likes: p.likes,
+        comments: p.comments,
+        location: p.location,
+    }));
 
     return (
         <div className="bg-slate-50 min-h-screen pb-28">
@@ -119,7 +143,7 @@ export function ProfessionalProfilePage() {
             <div className="px-4 -mt-4 relative z-20">
                 <div className="bg-white rounded-2xl shadow-lg border border-slate-100 p-3 flex gap-2">
                     <Link
-                        to={`/chat/${professional.id}`}
+                        to={`/chat/new/${professional.id}`}
                         className="flex-1 bg-emerald-500 text-white py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 hover:bg-emerald-600 active:scale-[0.98] transition-all shadow-md shadow-emerald-500/20"
                     >
                         <MessageCircle size={16} />
@@ -173,7 +197,13 @@ export function ProfessionalProfilePage() {
                 </div>
 
                 {/* Portfolio Gallery */}
-                <PortfolioGallery items={portfolio} professionalId={Number(id)} />
+                {portfolioLoading ? (
+                    <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-8 flex items-center justify-center">
+                        <Loader2 size={24} className="text-emerald-500 animate-spin" />
+                    </div>
+                ) : (
+                    <PortfolioGallery items={portfolioItems} professionalId={id || ''} />
+                )}
 
                 {/* Reviews with Distribution */}
                 <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
@@ -184,74 +214,82 @@ export function ProfessionalProfilePage() {
                         </h2>
                     </div>
 
-                    {/* Rating Distribution Bar */}
-                    {reviews.length > 0 && (
-                        <div className="bg-slate-50 rounded-xl p-4 mb-4 border border-slate-100">
-                            <div className="flex items-center gap-4 mb-3">
-                                <div className="text-center">
-                                    <p className="text-3xl font-black text-slate-900">{avgRating}</p>
-                                    <div className="flex justify-center mt-0.5">{renderStars(parseFloat(avgRating))}</div>
-                                    <p className="text-[10px] text-slate-400 mt-1">{reviews.length} reseñas</p>
-                                </div>
-                                <div className="flex-1 space-y-1.5">
-                                    {ratingDistribution.map(({ star, count, percentage }) => (
-                                        <div key={star} className="flex items-center gap-2">
-                                            <span className="text-[10px] font-bold text-slate-500 w-3">{star}</span>
-                                            <div className="flex-1 bg-slate-200 rounded-full h-2 overflow-hidden">
-                                                <div
-                                                    className="bg-amber-400 h-full rounded-full transition-all duration-500"
-                                                    style={{ width: `${percentage}%` }}
-                                                />
-                                            </div>
-                                            <span className="text-[10px] text-slate-400 w-5 text-right">{count}</span>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
+                    {reviewsLoading ? (
+                        <div className="flex items-center justify-center py-6">
+                            <Loader2 size={24} className="text-emerald-500 animate-spin" />
                         </div>
-                    )}
-
-                    {/* Review List */}
-                    <div className="space-y-4">
-                        {reviews.map(review => (
-                            <div key={review.id} className="flex gap-3">
-                                <img src={review.clientAvatar} alt={review.clientName} className="w-9 h-9 rounded-full object-cover shrink-0" />
-                                <div className="flex-1">
-                                    <div className="flex items-center justify-between mb-0.5">
-                                        <div className="flex items-center gap-1.5">
-                                            <h4 className="font-bold text-slate-900 text-xs">{review.clientName}</h4>
-                                            {review.isVerified && (
-                                                <span className="inline-flex items-center gap-0.5 bg-emerald-50 text-emerald-700 text-[9px] font-bold px-1.5 py-0.5 rounded-full border border-emerald-200">
-                                                    <ShieldCheck size={8} />
-                                                    Verificada
-                                                </span>
-                                            )}
+                    ) : (
+                        <>
+                            {/* Rating Distribution Bar */}
+                            {reviews.length > 0 && (
+                                <div className="bg-slate-50 rounded-xl p-4 mb-4 border border-slate-100">
+                                    <div className="flex items-center gap-4 mb-3">
+                                        <div className="text-center">
+                                            <p className="text-3xl font-black text-slate-900">{avgRating}</p>
+                                            <div className="flex justify-center mt-0.5">{renderStars(parseFloat(avgRating))}</div>
+                                            <p className="text-[10px] text-slate-400 mt-1">{reviews.length} reseñas</p>
                                         </div>
-                                        <span className="text-[10px] text-slate-400">{formatDate(review.createdAt)}</span>
-                                    </div>
-                                    <div className="flex mb-1">{renderStars(review.rating)}</div>
-                                    {review.tags.length > 0 && (
-                                        <div className="flex flex-wrap gap-1 mb-1.5">
-                                            {review.tags.map(tag => (
-                                                <span key={tag} className="bg-emerald-50 text-emerald-600 text-[9px] font-medium px-2 py-0.5 rounded-full border border-emerald-100">
-                                                    {tag}
-                                                </span>
+                                        <div className="flex-1 space-y-1.5">
+                                            {ratingDistribution.map(({ star, count, percentage }) => (
+                                                <div key={star} className="flex items-center gap-2">
+                                                    <span className="text-[10px] font-bold text-slate-500 w-3">{star}</span>
+                                                    <div className="flex-1 bg-slate-200 rounded-full h-2 overflow-hidden">
+                                                        <div
+                                                            className="bg-amber-400 h-full rounded-full transition-all duration-500"
+                                                            style={{ width: `${percentage}%` }}
+                                                        />
+                                                    </div>
+                                                    <span className="text-[10px] text-slate-400 w-5 text-right">{count}</span>
+                                                </div>
                                             ))}
                                         </div>
-                                    )}
-                                    <p className="text-xs text-slate-600 leading-relaxed">{review.comment}</p>
+                                    </div>
                                 </div>
-                            </div>
-                        ))}
+                            )}
 
-                        {reviews.length === 0 && (
-                            <div className="text-center py-6 text-slate-400">
-                                <Star size={24} className="mx-auto mb-2 opacity-30" />
-                                <p className="text-sm font-medium">Sin reseñas aún</p>
-                                <p className="text-xs mt-1">Las reseñas verificadas aparecerán aquí</p>
+                            {/* Review List */}
+                            <div className="space-y-4">
+                                {reviews.map(review => (
+                                    <div key={review.id} className="flex gap-3">
+                                        <img src={review.clientAvatar} alt={review.clientName} className="w-9 h-9 rounded-full object-cover shrink-0" />
+                                        <div className="flex-1">
+                                            <div className="flex items-center justify-between mb-0.5">
+                                                <div className="flex items-center gap-1.5">
+                                                    <h4 className="font-bold text-slate-900 text-xs">{review.clientName}</h4>
+                                                    {review.isVerified && (
+                                                        <span className="inline-flex items-center gap-0.5 bg-emerald-50 text-emerald-700 text-[9px] font-bold px-1.5 py-0.5 rounded-full border border-emerald-200">
+                                                            <ShieldCheck size={8} />
+                                                            Verificada
+                                                        </span>
+                                                    )}
+                                                </div>
+                                                <span className="text-[10px] text-slate-400">{formatDate(review.createdAt)}</span>
+                                            </div>
+                                            <div className="flex mb-1">{renderStars(review.rating)}</div>
+                                            {review.tags.length > 0 && (
+                                                <div className="flex flex-wrap gap-1 mb-1.5">
+                                                    {review.tags.map(tag => (
+                                                        <span key={tag} className="bg-emerald-50 text-emerald-600 text-[9px] font-medium px-2 py-0.5 rounded-full border border-emerald-100">
+                                                            {tag}
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                            )}
+                                            <p className="text-xs text-slate-600 leading-relaxed">{review.comment}</p>
+                                        </div>
+                                    </div>
+                                ))}
+
+                                {reviews.length === 0 && (
+                                    <div className="text-center py-6 text-slate-400">
+                                        <Star size={24} className="mx-auto mb-2 opacity-30" />
+                                        <p className="text-sm font-medium">Sin reseñas aún</p>
+                                        <p className="text-xs mt-1">Las reseñas verificadas aparecerán aquí</p>
+                                    </div>
+                                )}
                             </div>
-                        )}
-                    </div>
+                        </>
+                    )}
                 </div>
 
                 {/* Location hint */}
@@ -267,7 +305,7 @@ export function ProfessionalProfilePage() {
             {/* Sticky bottom CTA */}
             <div className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-slate-200 px-4 py-3 z-30">
                 <Link
-                    to={`/chat/${professional.id}`}
+                    to={`/chat/new/${professional.id}`}
                     className="w-full bg-emerald-500 text-white py-3.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2 hover:bg-emerald-600 active:scale-[0.98] transition-all shadow-lg shadow-emerald-500/20"
                 >
                     <MessageCircle size={18} />

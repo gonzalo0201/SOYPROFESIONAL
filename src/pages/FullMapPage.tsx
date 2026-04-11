@@ -2,15 +2,38 @@ import { MapContainer, TileLayer, Marker, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MOCK_PROFESSIONALS } from '../data/mockUsers';
+import { useProfessionals, type ProfessionalDisplay } from '../hooks/useProfessionals';
 import { getProfileMarkerIcon } from '../components/map/MapIcons';
 import { MapSearch } from '../components/map/MapSearch';
 import { ProfessionalCard } from '../components/ProfessionalCard';
-import { ArrowLeft, Users } from 'lucide-react';
-import type { Professional } from '../data/mockUsers';
+import { ArrowLeft, Users, Crosshair } from 'lucide-react';
+import { useLocation } from '../contexts/LocationContext';
+import L from 'leaflet';
+
+// Blue marker for user location
+const userLocationIcon = L.divIcon({
+    html: `<div style="
+        width: 20px; height: 20px;
+        background: #3b82f6;
+        border: 3px solid white;
+        border-radius: 50%;
+        box-shadow: 0 0 0 8px rgba(59,130,246,0.2), 0 2px 8px rgba(0,0,0,0.3);
+        animation: pulse-ring 2s ease-out infinite;
+    "></div>
+    <style>
+        @keyframes pulse-ring {
+            0% { box-shadow: 0 0 0 4px rgba(59,130,246,0.3), 0 2px 8px rgba(0,0,0,0.3); }
+            50% { box-shadow: 0 0 0 12px rgba(59,130,246,0.1), 0 2px 8px rgba(0,0,0,0.3); }
+            100% { box-shadow: 0 0 0 4px rgba(59,130,246,0.3), 0 2px 8px rgba(0,0,0,0.3); }
+        }
+    </style>`,
+    className: '',
+    iconSize: [20, 20],
+    iconAnchor: [10, 10],
+});
 
 // Profile bottom sheet style container
-function ProfileBottomSheet({ professional, onClose }: { professional: Professional, onClose: () => void }) {
+function ProfileBottomSheet({ professional, onClose }: { professional: ProfessionalDisplay, onClose: () => void }) {
     return (
         <div className="fixed inset-0 z-[1000] flex justify-center items-end pointer-events-none">
             <div className="absolute inset-0 bg-black/20 pointer-events-auto" onClick={onClose} />
@@ -38,18 +61,30 @@ function MapController({ center }: { center: [number, number] | null }) {
 
 export function FullMapPage() {
     const navigate = useNavigate();
-    const [selectedPro, setSelectedPro] = useState<Professional | null>(null);
+    const { professionals } = useProfessionals();
+    const { position, permissionGranted, requestLocation } = useLocation();
+    const [selectedPro, setSelectedPro] = useState<ProfessionalDisplay | null>(null);
     const [mapCenter, setMapCenter] = useState<[number, number] | null>(null);
     const [activeFilter, setActiveFilter] = useState<string | null>(null);
 
+    const userCenter: [number, number] = [position.lat, position.lng];
+
     // Filter professionals based on active filter
     const filteredProfessionals = activeFilter
-        ? MOCK_PROFESSIONALS.filter(p =>
+        ? professionals.filter(p =>
             p.trade.toLowerCase().includes(activeFilter.toLowerCase()) ||
             p.name.toLowerCase().includes(activeFilter.toLowerCase()) ||
             p.skills.some(s => s.toLowerCase().includes(activeFilter.toLowerCase()))
         )
-        : MOCK_PROFESSIONALS;
+        : professionals;
+
+    const handleRecenter = () => {
+        if (permissionGranted) {
+            setMapCenter([...userCenter]);
+        } else {
+            requestLocation();
+        }
+    };
 
     return (
         <div className="relative h-screen w-full bg-slate-100">
@@ -64,6 +99,7 @@ export function FullMapPage() {
 
                 <div className="flex-1">
                     <MapSearch
+                        professionals={professionals}
                         onSelectLocation={(lat, lng) => setMapCenter([lat, lng])}
                         onSelectProfessional={(pro) => setSelectedPro(pro)}
                         onFilterApplied={(_type, value) => setActiveFilter(value)}
@@ -87,8 +123,17 @@ export function FullMapPage() {
                 </div>
             )}
 
+            {/* My Location Button */}
+            <button
+                onClick={handleRecenter}
+                className="absolute bottom-24 right-4 z-[400] bg-white p-3.5 rounded-2xl shadow-lg border border-slate-200 text-blue-500 hover:bg-blue-50 active:scale-95 transition-all"
+                title="Mi ubicación"
+            >
+                <Crosshair size={22} />
+            </button>
+
             <MapContainer
-                center={[-34.6037, -58.3816]}
+                center={userCenter}
                 zoom={14}
                 style={{ height: '100%', width: '100%' }}
                 zoomControl={false}
@@ -99,6 +144,11 @@ export function FullMapPage() {
                 />
 
                 <MapController center={mapCenter} />
+
+                {/* User location marker */}
+                {permissionGranted && (
+                    <Marker position={userCenter} icon={userLocationIcon} />
+                )}
 
                 {filteredProfessionals.map((pro) => (
                     <Marker

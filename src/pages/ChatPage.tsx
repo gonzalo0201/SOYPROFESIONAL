@@ -1,156 +1,133 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Send, Phone, MoreVertical, Image as ImageIcon, MapPin, CheckCheck, Clock, Star } from 'lucide-react';
+import { ArrowLeft, Send, Phone, MoreVertical, CheckCheck, Clock, Loader2 } from 'lucide-react';
 import clsx from 'clsx';
-import { useReviews } from '../contexts/ReviewContext';
-import { ReviewRequestBubble } from '../components/reviews/ReviewRequestBubble';
-import { ReviewModal } from '../components/reviews/ReviewModal';
-import { MOCK_PROFESSIONALS } from '../data/mockUsers';
-
-interface Message {
-    id: number;
-    text: string;
-    time: string;
-    isOwn: boolean;
-    status: 'sent' | 'delivered' | 'read';
-    image?: string;
-    type?: 'text' | 'system';
-}
+import { useAuth } from '../contexts/AuthContext';
+import { useChat } from '../hooks/useChat';
+import { setActiveConversation } from '../contexts/NotificationContext';
+import { supabase } from '../lib/supabase';
 
 interface ChatContact {
-    id: number;
+    id: string;
     name: string;
     role: string;
     image: string;
     isOnline: boolean;
-    lastSeen?: string;
 }
-
-const MOCK_CONTACTS: Record<string, ChatContact> = {
-    '1': {
-        id: 1,
-        name: 'Carlos Mendoza',
-        role: 'Gasista Matriculado',
-        image: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop',
-        isOnline: true,
-    },
-    '2': {
-        id: 2,
-        name: 'Ana Rodríguez',
-        role: 'Electricista',
-        image: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&h=150&fit=crop',
-        isOnline: false,
-        lastSeen: 'Hace 2 horas',
-    },
-};
-
-const MOCK_MESSAGES: Record<string, Message[]> = {
-    '1': [
-        { id: 1, text: 'Hola Carlos! Necesito un trabajo de gas en mi departamento. ¿Tenés disponibilidad esta semana?', time: '09:15', isOwn: true, status: 'read' },
-        { id: 2, text: 'Hola! Sí, puedo pasar a revisar. ¿Qué tipo de trabajo necesitás?', time: '09:20', isOwn: false, status: 'read' },
-        { id: 3, text: 'Es para instalar un calefón nuevo. Ya lo compré, y necesito la conexión de gas y el tiraje.', time: '09:22', isOwn: true, status: 'read' },
-        { id: 4, text: 'Perfecto, eso lo hago sin problema. ¿Qué modelo de calefón es?', time: '09:25', isOwn: false, status: 'read' },
-        { id: 5, text: 'Es un Orbis 14 litros, tiro balanceado.', time: '09:28', isOwn: true, status: 'read' },
-        { id: 6, text: 'Muy bien, conozco ese modelo. El trabajo lleva unas 3 horas aproximadamente. Te puedo presupuestar $45.000 con materiales incluidos.', time: '09:35', isOwn: false, status: 'read' },
-        { id: 7, text: '¿Incluye la certificación?', time: '09:40', isOwn: true, status: 'read' },
-        { id: 8, text: 'Sí, incluye la certificación de gas. Soy gasista matriculado así que te hago la oblea y todo.', time: '09:42', isOwn: false, status: 'read' },
-        { id: 9, text: 'Genial! Me parece bien el presupuesto. ¿Cuándo podrías venir?', time: '10:00', isOwn: true, status: 'read' },
-        { id: 10, text: 'Sí, puedo pasar mañana a las 10hs.', time: '10:30', isOwn: false, status: 'read' },
-        { id: 11, text: 'Te mando la ubicación 📍', time: '10:31', isOwn: true, status: 'delivered' },
-    ],
-    '2': [
-        { id: 1, text: 'Hola Ana! Vi tu perfil en Oficios. Necesito cambiar unas llaves térmicas.', time: '15:00', isOwn: true, status: 'read' },
-        { id: 2, text: 'Hola! Sí, claro. ¿Cuántas llaves térmicas necesitás cambiar?', time: '15:15', isOwn: false, status: 'read' },
-        { id: 3, text: 'Son 4 llaves, un tablero chico de un monoambiente.', time: '15:20', isOwn: true, status: 'read' },
-        { id: 4, text: 'Dale, avisame cualquier cosa.', time: '15:30', isOwn: false, status: 'read' },
-    ],
-};
 
 export function ChatPage() {
     const { chatId } = useParams<{ chatId: string }>();
     const navigate = useNavigate();
-    const [messages, setMessages] = useState<Message[]>(MOCK_MESSAGES[chatId || '1'] || []);
+    const { user } = useAuth();
     const [newMessage, setNewMessage] = useState('');
     const messagesEndRef = useRef<HTMLDivElement>(null);
-    const contact = MOCK_CONTACTS[chatId || '1'];
-    const professional = MOCK_PROFESSIONALS.find(p => p.id === Number(chatId));
+    const [contact, setContact] = useState<ChatContact | null>(null);
+    const [receiverId, setReceiverId] = useState<string | undefined>();
+    const [isLoadingContact, setIsLoadingContact] = useState(true);
 
-    const { requestReview, acceptReview, rejectReview, submitReview, getRequestsForChat, hasActiveRequest } = useReviews();
+    // Load conversation info and find the other participant
+    useEffect(() => {
+        if (!chatId || !user) return;
 
-    const chatRequests = getRequestsForChat(Number(chatId));
-    const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
-    const [activeRequestId, setActiveRequestId] = useState<string | null>(null);
+        async function loadConversationInfo() {
+            setIsLoadingContact(true);
 
+            // Get conversation details
+            const { data: conv, error } = await supabase
+                .from('conversations')
+                .select('*')
+                .eq('id', chatId)
+                .single();
+
+            if (error || !conv) {
+                console.error('Conversation not found:', error);
+                setIsLoadingContact(false);
+                return;
+            }
+
+            // Determine the other participant
+            const otherUserId = conv.participant_1 === user!.id
+                ? conv.participant_2
+                : conv.participant_1;
+
+            setReceiverId(otherUserId);
+
+            // Get their profile
+            const { data: otherProfile } = await supabase
+                .from('profiles')
+                .select('*')
+                .eq('id', otherUserId)
+                .single();
+
+            setContact({
+                id: otherUserId,
+                name: otherProfile?.name || 'Usuario',
+                role: otherProfile?.role === 'professional' ? 'Profesional' : 'Cliente',
+                image: otherProfile?.avatar_url || `https://ui-avatars.com/api/?name=U&background=10b981&color=fff`,
+                isOnline: true, // Simplified - could use presence channels later
+            });
+
+            setIsLoadingContact(false);
+        }
+
+        loadConversationInfo();
+    }, [chatId, user]);
+
+    // Use the chat hook
+    const { messages, isLoading: isLoadingMessages, sendMessage, isSending } = useChat(
+        chatId,
+        user?.id,
+        receiverId
+    );
+
+    // Auto-scroll to bottom on new messages
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }, [messages, chatRequests]);
+    }, [messages]);
 
-    const handleSend = (e: React.FormEvent) => {
+    // Tell NotificationContext which conversation we're viewing
+    useEffect(() => {
+        if (chatId) {
+            setActiveConversation(chatId);
+        }
+        return () => {
+            setActiveConversation(null);
+        };
+    }, [chatId]);
+
+    const handleSend = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!newMessage.trim()) return;
+        if (!newMessage.trim() || isSending) return;
 
-        const msg: Message = {
-            id: messages.length + 1,
-            text: newMessage.trim(),
-            time: new Date().toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' }),
-            isOwn: true,
-            status: 'sent',
-        };
-
-        setMessages(prev => [...prev, msg]);
+        const text = newMessage;
         setNewMessage('');
-
-        // Simulate response
-        setTimeout(() => {
-            const response: Message = {
-                id: messages.length + 2,
-                text: getAutoResponse(newMessage),
-                time: new Date().toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' }),
-                isOwn: false,
-                status: 'read',
-            };
-            setMessages(prev => [...prev, response]);
-        }, 1500 + Math.random() * 2000);
+        await sendMessage(text);
     };
 
-    const handleRequestReview = () => {
-        if (!contact || hasActiveRequest(contact.id)) return;
-        requestReview(contact.id, contact.name);
-
-        // Add system message
-        const sysMsg: Message = {
-            id: messages.length + 1,
-            text: `Solicitaste dejar una reseña a ${contact.name}`,
-            time: new Date().toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' }),
-            isOwn: true,
-            status: 'read',
-            type: 'system',
-        };
-        setMessages(prev => [...prev, sysMsg]);
-    };
-
-    const handleAcceptReview = (requestId: string) => {
-        acceptReview(requestId);
-    };
-
-    const handleRejectReview = (requestId: string) => {
-        rejectReview(requestId);
-    };
-
-    const handleOpenReviewModal = (requestId: string) => {
-        setActiveRequestId(requestId);
-        setIsReviewModalOpen(true);
-    };
-
-    const handleSubmitReview = (rating: number, comment: string, tags: string[]) => {
-        if (!activeRequestId) return;
-        submitReview(activeRequestId, rating, comment, tags);
-    };
+    // Loading state
+    if (isLoadingContact || isLoadingMessages) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-slate-50">
+                <div className="flex flex-col items-center gap-3">
+                    <Loader2 size={32} className="text-emerald-500 animate-spin" />
+                    <p className="text-slate-400 text-sm">Cargando chat...</p>
+                </div>
+            </div>
+        );
+    }
 
     if (!contact) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-slate-50">
-                <p className="text-slate-400">Chat no encontrado</p>
+                <div className="text-center">
+                    <p className="text-slate-400 mb-4">Chat no encontrado</p>
+                    <button
+                        onClick={() => navigate('/messages')}
+                        className="text-emerald-600 font-bold text-sm"
+                    >
+                        Volver a mensajes
+                    </button>
+                </div>
             </div>
         );
     }
@@ -176,7 +153,7 @@ export function ChatPage() {
                     <div className="flex-1 min-w-0">
                         <h2 className="font-bold text-sm truncate">{contact.name}</h2>
                         <p className="text-[11px] text-slate-300">
-                            {contact.isOnline ? '🟢 En línea' : contact.lastSeen || 'Desconectado'}
+                            {contact.isOnline ? '🟢 En línea' : 'Desconectado'}
                         </p>
                     </div>
                 </div>
@@ -198,20 +175,19 @@ export function ChatPage() {
                     </span>
                 </div>
 
+                {messages.length === 0 && (
+                    <div className="text-center py-12">
+                        <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                            <Send size={24} className="text-emerald-500" />
+                        </div>
+                        <p className="text-slate-500 text-sm font-medium">¡Iniciá la conversación!</p>
+                        <p className="text-slate-400 text-xs mt-1">Enviá un mensaje a {contact.name}</p>
+                    </div>
+                )}
+
                 {messages.map((msg, index) => {
                     const showAvatar = !msg.isOwn && (index === 0 || messages[index - 1]?.isOwn);
                     const isLastInGroup = index === messages.length - 1 || messages[index + 1]?.isOwn !== msg.isOwn;
-
-                    // System messages
-                    if (msg.type === 'system') {
-                        return (
-                            <div key={msg.id} className="flex justify-center my-2">
-                                <span className="bg-amber-50 text-amber-700 text-[11px] font-medium px-3 py-1.5 rounded-full border border-amber-100">
-                                    ⭐ {msg.text}
-                                </span>
-                            </div>
-                        );
-                    }
 
                     return (
                         <div
@@ -250,19 +226,16 @@ export function ChatPage() {
                                         )
                                 )}
                             >
-                                {msg.image && (
-                                    <img src={msg.image} alt="" className="rounded-xl mb-2 w-full" />
-                                )}
-                                <p className="text-[13px] leading-relaxed">{msg.text}</p>
+                                <p className="text-[13px] leading-relaxed">{msg.content}</p>
                                 <div className={clsx(
                                     "flex items-center justify-end gap-1 mt-0.5",
                                     msg.isOwn ? "text-emerald-100" : "text-slate-400"
                                 )}>
                                     <span className="text-[10px]">{msg.time}</span>
                                     {msg.isOwn && (
-                                        msg.status === 'sent'
+                                        msg.id.startsWith('temp-')
                                             ? <Clock size={10} />
-                                            : <CheckCheck size={12} className={msg.status === 'read' ? 'text-blue-200' : ''} />
+                                            : <CheckCheck size={12} className={msg.read ? 'text-blue-200' : ''} />
                                     )}
                                 </div>
                             </div>
@@ -270,45 +243,12 @@ export function ChatPage() {
                     );
                 })}
 
-                {/* Review Request Bubbles */}
-                {chatRequests.map(request => (
-                    <ReviewRequestBubble
-                        key={request.id}
-                        request={request}
-                        isOwnRequest={true}
-                        onAccept={() => handleAcceptReview(request.id)}
-                        onReject={() => handleRejectReview(request.id)}
-                        onWriteReview={() => handleOpenReviewModal(request.id)}
-                    />
-                ))}
-
                 <div ref={messagesEndRef} />
             </div>
 
             {/* Input Area */}
             <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 px-3 py-2.5 z-20">
                 <form onSubmit={handleSend} className="flex items-center gap-2">
-                    <button type="button" className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-colors">
-                        <ImageIcon size={20} />
-                    </button>
-                    <button type="button" className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-colors">
-                        <MapPin size={20} />
-                    </button>
-                    {/* Review Request Button */}
-                    <button
-                        type="button"
-                        onClick={handleRequestReview}
-                        disabled={hasActiveRequest(contact.id)}
-                        className={clsx(
-                            "p-2 rounded-full transition-colors",
-                            hasActiveRequest(contact.id)
-                                ? "text-amber-300 cursor-not-allowed"
-                                : "text-amber-500 hover:text-amber-600 hover:bg-amber-50"
-                        )}
-                        title="Solicitar reseña"
-                    >
-                        <Star size={20} />
-                    </button>
                     <input
                         type="text"
                         value={newMessage}
@@ -318,50 +258,22 @@ export function ChatPage() {
                     />
                     <button
                         type="submit"
-                        disabled={!newMessage.trim()}
+                        disabled={!newMessage.trim() || isSending}
                         className={clsx(
                             "p-2.5 rounded-full transition-all",
-                            newMessage.trim()
+                            newMessage.trim() && !isSending
                                 ? "bg-emerald-500 text-white shadow-md shadow-emerald-500/20 hover:bg-emerald-600 active:scale-95"
                                 : "bg-slate-100 text-slate-300"
                         )}
                     >
-                        <Send size={18} />
+                        {isSending ? (
+                            <Loader2 size={18} className="animate-spin" />
+                        ) : (
+                            <Send size={18} />
+                        )}
                     </button>
                 </form>
             </div>
-
-            {/* Review Modal */}
-            {professional && (
-                <ReviewModal
-                    isOpen={isReviewModalOpen}
-                    onClose={() => setIsReviewModalOpen(false)}
-                    onSubmit={handleSubmitReview}
-                    professionalName={professional.name}
-                    professionalImage={professional.image}
-                    professionalTrade={professional.trade}
-                />
-            )}
         </div>
     );
-}
-
-function getAutoResponse(message: string): string {
-    const lower = message.toLowerCase();
-    if (lower.includes('hora') || lower.includes('cuando') || lower.includes('cuándo')) {
-        return '¿Te parece bien mañana a la mañana? Tengo un hueco entre las 9 y las 12.';
-    }
-    if (lower.includes('precio') || lower.includes('presupuesto') || lower.includes('cuánto') || lower.includes('cuanto')) {
-        return 'Tendría que pasar a ver el trabajo primero para darte un presupuesto exacto, ¿te parece?';
-    }
-    if (lower.includes('ubicación') || lower.includes('direc') || lower.includes('dónde') || lower.includes('donde')) {
-        return 'Mandame la ubicación por acá y cuando vaya la busco en el GPS 📍';
-    }
-    if (lower.includes('gracias') || lower.includes('genial') || lower.includes('dale')) {
-        return '¡De nada! Cualquier cosa avisame. 👍';
-    }
-    if (lower.includes('hola') || lower.includes('buenas')) {
-        return '¡Hola! ¿En qué te puedo ayudar?';
-    }
-    return '¡Perfecto! Lo tengo en cuenta. ¿Algo más que necesites?';
 }

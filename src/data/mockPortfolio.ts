@@ -1,8 +1,8 @@
 export type PortfolioCategory = 'antes-despues' | 'en-progreso' | 'terminado' | 'general';
 
 export interface PortfolioItem {
-    id: number;
-    professionalId: number;
+    id: string | number;
+    professionalId: string | number;
     images: string[];           // Array of image URLs (2 for antes-despues: [antes, despues])
     caption: string;
     description: string;
@@ -354,11 +354,11 @@ export const MOCK_PORTFOLIO: PortfolioItem[] = [
     },
 ];
 
-export function getPortfolioFor(professionalId: number): PortfolioItem[] {
+export function getPortfolioFor(professionalId: string | number): PortfolioItem[] {
     return MOCK_PORTFOLIO.filter(item => item.professionalId === professionalId);
 }
 
-export function getPortfolioStats(professionalId: number) {
+export function getPortfolioStats(professionalId: string | number) {
     const items = getPortfolioFor(professionalId);
     return {
         totalPhotos: items.reduce((sum, item) => sum + item.images.length, 0),

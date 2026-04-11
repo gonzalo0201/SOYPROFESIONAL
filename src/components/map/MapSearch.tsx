@@ -1,9 +1,8 @@
 import { Search, MapPin, X, Briefcase, ClipboardList, Grid3X3, ChevronRight, ChevronLeft, Star, Users } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
 import { CATEGORIES } from '../../data/mockCategories';
-import { MOCK_PROFESSIONALS } from '../../data/mockUsers';
+import type { ProfessionalDisplay } from '../../hooks/useProfessionals';
 import type { Category, Service } from '../../data/mockCategories';
-import type { Professional } from '../../data/mockUsers';
 import clsx from 'clsx';
 
 // Mock database of cities
@@ -23,12 +22,13 @@ type MainTab = 'ciudad' | 'profesional';
 type FilterTab = 'servicio' | 'tarea' | 'categoria';
 
 interface MapSearchProps {
+    professionals?: ProfessionalDisplay[];
     onSelectLocation: (lat: number, lng: number) => void;
-    onSelectProfessional: (professional: Professional) => void;
+    onSelectProfessional: (professional: ProfessionalDisplay) => void;
     onFilterApplied?: (filterType: FilterTab, value: string) => void;
 }
 
-export function MapSearch({ onSelectLocation, onSelectProfessional, onFilterApplied }: MapSearchProps) {
+export function MapSearch({ professionals = [], onSelectLocation, onSelectProfessional, onFilterApplied }: MapSearchProps) {
     const [mainTab, setMainTab] = useState<MainTab>('ciudad');
     const [query, setQuery] = useState('');
     const [isOpen, setIsOpen] = useState(false);
@@ -46,7 +46,7 @@ export function MapSearch({ onSelectLocation, onSelectProfessional, onFilterAppl
 
     // Professional search
     const professionalSuggestions = query.length >= 2
-        ? MOCK_PROFESSIONALS.filter(p =>
+        ? professionals.filter(p =>
             p.name.toLowerCase().includes(query.toLowerCase()) ||
             p.trade.toLowerCase().includes(query.toLowerCase()) ||
             p.skills.some(s => s.toLowerCase().includes(query.toLowerCase()))
@@ -80,7 +80,7 @@ export function MapSearch({ onSelectLocation, onSelectProfessional, onFilterAppl
         onSelectLocation(city.lat, city.lng);
     };
 
-    const handleSelectPro = (pro: Professional) => {
+    const handleSelectPro = (pro: ProfessionalDisplay) => {
         setQuery(pro.name);
         setIsOpen(false);
         onSelectProfessional(pro);
