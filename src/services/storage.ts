@@ -12,21 +12,30 @@ export async function uploadImage(
   file: File,
   customName?: string
 ): Promise<{ url: string | null; error: string | null }> {
-  // Generate unique filename
-  const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg';
+  // Use file type to determine extension (more reliable than file name)
+  const mimeToExt: Record<string, string> = {
+    'image/jpeg': 'jpg',
+    'image/png': 'png',
+    'image/webp': 'webp',
+    'image/gif': 'gif',
+  };
+  const ext = mimeToExt[file.type] || 'jpg';
   const fileName = customName || `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
   const filePath = `${userId}/${fileName}.${ext}`;
+
+  console.log(`[Storage] Uploading to ${bucket}/${filePath} (${(file.size / 1024).toFixed(0)}KB, ${file.type})`);
 
   const { error } = await supabase.storage
     .from(bucket)
     .upload(filePath, file, {
       cacheControl: '3600',
       upsert: bucket === 'avatars', // Avatars can be overwritten
+      contentType: file.type || 'image/jpeg',
     });
 
   if (error) {
-    console.error(`Error uploading to ${bucket}:`, error);
-    return { url: null, error: error.message };
+    console.error(`[Storage] Error uploading to ${bucket}:`, error.message);
+    return { url: null, error: `Error al subir: ${error.message}` };
   }
 
   // Get public URL
@@ -34,6 +43,7 @@ export async function uploadImage(
     .from(bucket)
     .getPublicUrl(filePath);
 
+  console.log(`[Storage] Upload OK:`, urlData.publicUrl);
   return { url: urlData.publicUrl, error: null };
 }
 

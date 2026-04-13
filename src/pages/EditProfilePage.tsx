@@ -143,13 +143,14 @@ export function EditProfilePage() {
         setAvatarPreview(previewUrl);
 
         try {
-            // Compress before upload
-            const compressed = await compressImage(file, 800, 0.85);
+            // Compress aggressively for mobile (512px max, 70% quality)
+            const compressed = await compressImage(file, 512, 0.7);
+            console.log('[Avatar] Original:', (file.size / 1024).toFixed(0), 'KB → Compressed:', (compressed.size / 1024).toFixed(0), 'KB');
 
-            // Upload with timeout (15 seconds max)
+            // Upload with timeout (30 seconds max for mobile)
             const uploadPromise = uploadAvatar(user.id, compressed);
             const timeoutPromise = new Promise<{ url: null; error: string }>((resolve) =>
-                setTimeout(() => resolve({ url: null, error: 'La subida tardó demasiado. Verificá tu conexión.' }), 15000)
+                setTimeout(() => resolve({ url: null, error: 'La subida tardó demasiado. Verificá tu conexión e intentá de nuevo.' }), 30000)
             );
 
             const { url, error } = await Promise.race([uploadPromise, timeoutPromise]);
