@@ -138,20 +138,26 @@ export function EditProfilePage() {
         setUploadError(null);
         setIsUploadingAvatar(true);
 
-        try {
-            // Show preview immediately
-            const previewUrl = URL.createObjectURL(file);
-            setAvatarPreview(previewUrl);
+        // Show preview immediately
+        const previewUrl = URL.createObjectURL(file);
+        setAvatarPreview(previewUrl);
 
+        try {
             // Compress before upload
             const compressed = await compressImage(file, 800, 0.85);
 
-            // Upload to Supabase Storage
-            const { url, error } = await uploadAvatar(user.id, compressed);
+            // Upload with timeout (15 seconds max)
+            const uploadPromise = uploadAvatar(user.id, compressed);
+            const timeoutPromise = new Promise<{ url: null; error: string }>((resolve) =>
+                setTimeout(() => resolve({ url: null, error: 'La subida tardó demasiado. Verificá tu conexión.' }), 15000)
+            );
+
+            const { url, error } = await Promise.race([uploadPromise, timeoutPromise]);
 
             if (error) {
+                console.warn('[Avatar] Upload error:', error);
                 setUploadError(error);
-                setAvatarPreview(null);
+                // Keep preview as visual feedback even if upload failed
             } else if (url) {
                 // Add cache-buster to force reload
                 setPhoto(url + '?t=' + Date.now());
@@ -159,8 +165,7 @@ export function EditProfilePage() {
             }
         } catch (err) {
             console.error('Error uploading avatar:', err);
-            setUploadError('Error al subir la imagen');
-            setAvatarPreview(null);
+            setUploadError('Error al subir la imagen. Intentá de nuevo.');
         } finally {
             setIsUploadingAvatar(false);
             // Reset file input
