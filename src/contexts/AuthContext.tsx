@@ -17,6 +17,26 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
+/**
+ * Build a fallback profile from user metadata (Google OAuth data)
+ * Used when we can't fetch/create in Supabase (RLS issues, etc.)
+ */
+function buildFallbackProfile(authUser: User): Profile {
+  return {
+    id: authUser.id,
+    name: authUser.user_metadata?.full_name
+      || authUser.user_metadata?.name
+      || authUser.email?.split('@')[0]
+      || 'Usuario',
+    email: authUser.email || '',
+    avatar_url: authUser.user_metadata?.avatar_url
+      || authUser.user_metadata?.picture
+      || null,
+    role: 'client',
+    created_at: new Date().toISOString(),
+  };
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -26,63 +46,71 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   /**
    * Fetch profile from profiles table.
    * If the profile doesn't exist (e.g. first Google OAuth login), auto-create it.
+   * If anything fails, return a fallback profile from auth metadata.
    */
-  const fetchOrCreateProfile = async (authUser: User): Promise<Profile | null> => {
-    // 1) Try to fetch existing profile
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', authUser.id)
-      .single();
-
-    if (data) return data;
-
-    // 2) Profile doesn't exist — auto-create from OAuth metadata
-    if (error && error.code === 'PGRST116') {
-      console.log('[Auth] Profile not found, creating from OAuth data...');
-
-      const name = authUser.user_metadata?.full_name
-        || authUser.user_metadata?.name
-        || authUser.email?.split('@')[0]
-        || 'Usuario';
-      const email = authUser.email || '';
-      const avatarUrl = authUser.user_metadata?.avatar_url
-        || authUser.user_metadata?.picture
-        || null;
-
-      const { data: newProfile, error: insertError } = await supabase
+  const fetchOrCreateProfile = async (authUser: User): Promise<Profile> => {
+    try {
+      // 1) Try to fetch existing profile
+      const { data, error } = await supabase
         .from('profiles')
-        .insert({
-          id: authUser.id,
-          name,
-          email,
-          avatar_url: avatarUrl,
-          role: 'client',
-        })
-        .select()
+        .select('*')
+        .eq('id', authUser.id)
         .single();
 
-      if (insertError) {
-        // Could be a race condition (profile was just created), try fetching again
-        console.error('[Auth] Error creating profile:', insertError);
-        const { data: retryData } = await supabase
+      if (data) return data;
+
+      // 2) Profile doesn't exist — auto-create from OAuth metadata
+      if (error && error.code === 'PGRST116') {
+        console.log('[Auth] Profile not found, creating from OAuth data...');
+
+        const fallback = buildFallbackProfile(authUser);
+
+        const { data: newProfile, error: insertError } = await supabase
           .from('profiles')
-          .select('*')
-          .eq('id', authUser.id)
+          .insert({
+            id: fallback.id,
+            name: fallback.name,
+            email: fallback.email,
+            avatar_url: fallback.avatar_url,
+            role: 'client',
+          })
+          .select()
           .single();
-        return retryData;
+
+        if (insertError) {
+          console.warn('[Auth] Could not create profile in DB, using fallback:', insertError.message);
+          // Try one more fetch (race condition - another tab may have created it)
+          const { data: retryData } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', authUser.id)
+            .single();
+          return retryData || fallback;
+        }
+
+        return newProfile;
       }
 
-      return newProfile;
+      // 3) Other fetch error — use fallback
+      console.warn('[Auth] Error fetching profile, using fallback:', error?.message);
+      return buildFallbackProfile(authUser);
+    } catch (err) {
+      console.warn('[Auth] Exception in fetchOrCreateProfile, using fallback:', err);
+      return buildFallbackProfile(authUser);
     }
-
-    console.error('[Auth] Error fetching profile:', error);
-    return null;
   };
 
   // Listen for auth state changes
   useEffect(() => {
     let mounted = true;
+
+    // Safety timeout: never stay in loading state for more than 5 seconds
+    const safetyTimeout = setTimeout(() => {
+      if (mounted && isLoading) {
+        console.warn('[Auth] Safety timeout reached, forcing isLoading=false');
+        setIsLoading(false);
+      }
+    }, 5000);
 
     // Get initial session
     supabase.auth.getSession().then(async ({ data: { session: currentSession } }) => {
@@ -95,6 +123,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const userProfile = await fetchOrCreateProfile(currentSession.user);
         if (mounted) setProfile(userProfile);
       }
+      if (mounted) setIsLoading(false);
+    }).catch((err) => {
+      console.error('[Auth] Error getting session:', err);
       if (mounted) setIsLoading(false);
     });
 
@@ -118,8 +149,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     return () => {
       mounted = false;
+      clearTimeout(safetyTimeout);
       subscription.unsubscribe();
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const signUp = async (email: string, password: string, name: string) => {
@@ -158,7 +191,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
 
     if (error) {
-      // Translate common errors to Spanish
       const errorMessages: Record<string, string> = {
         'Invalid login credentials': 'Email o contraseña incorrectos',
         'Email not confirmed': 'Necesitás confirmar tu email primero',
