@@ -223,21 +223,37 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setSession(null);
   };
 
-  const updateProfile = async (updates: Partial<Profile>) => {
+  const updateProfile = async (updates: Partial<Profile>): Promise<{ error: string | null }> => {
     if (!user) return { error: 'No hay usuario autenticado' };
 
-    const { error } = await supabase
-      .from('profiles')
-      .update(updates)
-      .eq('id', user.id);
+    try {
+      // Timeout wrapper: 10 seconds max
+      const updatePromise = supabase
+        .from('profiles')
+        .update(updates)
+        .eq('id', user.id);
 
-    if (error) return { error: error.message };
+      const timeoutPromise = new Promise<{ error: { message: string } }>((resolve) =>
+        setTimeout(() => resolve({ error: { message: 'Timeout: la operación tardó demasiado' } }), 10000)
+      );
 
-    // Refresh profile locally
-    const updated = await fetchOrCreateProfile(user);
-    setProfile(updated);
+      const { error } = await Promise.race([updatePromise, timeoutPromise]);
 
-    return { error: null };
+      if (error) {
+        console.error('[Auth] Update profile error:', error.message);
+        return { error: error.message };
+      }
+
+      // Refresh profile locally (don't block on this)
+      fetchOrCreateProfile(user).then((updated) => {
+        setProfile(updated);
+      }).catch(() => { /* ignore refresh errors */ });
+
+      return { error: null };
+    } catch (err) {
+      console.error('[Auth] Exception updating profile:', err);
+      return { error: 'Error al actualizar el perfil' };
+    }
   };
 
   return (
