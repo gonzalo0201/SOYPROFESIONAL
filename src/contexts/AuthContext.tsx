@@ -23,51 +23,103 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Fetch profile from profiles table
-  const fetchProfile = async (userId: string) => {
+  /**
+   * Fetch profile from profiles table.
+   * If the profile doesn't exist (e.g. first Google OAuth login), auto-create it.
+   */
+  const fetchOrCreateProfile = async (authUser: User): Promise<Profile | null> => {
+    // 1) Try to fetch existing profile
     const { data, error } = await supabase
       .from('profiles')
       .select('*')
-      .eq('id', userId)
+      .eq('id', authUser.id)
       .single();
 
-    if (error) {
-      console.error('Error fetching profile:', error);
-      return null;
+    if (data) return data;
+
+    // 2) Profile doesn't exist — auto-create from OAuth metadata
+    if (error && error.code === 'PGRST116') {
+      console.log('[Auth] Profile not found, creating from OAuth data...');
+
+      const name = authUser.user_metadata?.full_name
+        || authUser.user_metadata?.name
+        || authUser.email?.split('@')[0]
+        || 'Usuario';
+      const email = authUser.email || '';
+      const avatarUrl = authUser.user_metadata?.avatar_url
+        || authUser.user_metadata?.picture
+        || null;
+
+      const { data: newProfile, error: insertError } = await supabase
+        .from('profiles')
+        .insert({
+          id: authUser.id,
+          name,
+          email,
+          avatar_url: avatarUrl,
+          role: 'client',
+        })
+        .select()
+        .single();
+
+      if (insertError) {
+        // Could be a race condition (profile was just created), try fetching again
+        console.error('[Auth] Error creating profile:', insertError);
+        const { data: retryData } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', authUser.id)
+          .single();
+        return retryData;
+      }
+
+      return newProfile;
     }
-    return data;
+
+    console.error('[Auth] Error fetching profile:', error);
+    return null;
   };
 
   // Listen for auth state changes
   useEffect(() => {
+    let mounted = true;
+
     // Get initial session
-    supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
+    supabase.auth.getSession().then(async ({ data: { session: currentSession } }) => {
+      if (!mounted) return;
+
       setSession(currentSession);
       setUser(currentSession?.user ?? null);
 
       if (currentSession?.user) {
-        fetchProfile(currentSession.user.id).then(setProfile);
+        const userProfile = await fetchOrCreateProfile(currentSession.user);
+        if (mounted) setProfile(userProfile);
       }
-      setIsLoading(false);
+      if (mounted) setIsLoading(false);
     });
 
     // Listen for changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (_event, newSession) => {
+        if (!mounted) return;
+
         setSession(newSession);
         setUser(newSession?.user ?? null);
 
         if (newSession?.user) {
-          const userProfile = await fetchProfile(newSession.user.id);
-          setProfile(userProfile);
+          const userProfile = await fetchOrCreateProfile(newSession.user);
+          if (mounted) setProfile(userProfile);
         } else {
           setProfile(null);
         }
-        setIsLoading(false);
+        if (mounted) setIsLoading(false);
       }
     );
 
-    return () => subscription.unsubscribe();
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const signUp = async (email: string, password: string, name: string) => {
@@ -147,7 +199,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (error) return { error: error.message };
 
     // Refresh profile locally
-    const updated = await fetchProfile(user.id);
+    const updated = await fetchOrCreateProfile(user);
     setProfile(updated);
 
     return { error: null };
