@@ -19,6 +19,9 @@ export interface Database {
           email: string
           avatar_url: string | null
           role: UserRole
+          age: number | null
+          address: string | null
+          phone: string | null
           created_at: string
         }
         Insert: {
@@ -27,6 +30,9 @@ export interface Database {
           email: string
           avatar_url?: string | null
           role?: UserRole
+          age?: number | null
+          address?: string | null
+          phone?: string | null
           created_at?: string
         }
         Update: {
@@ -35,6 +41,9 @@ export interface Database {
           email?: string
           avatar_url?: string | null
           role?: UserRole
+          age?: number | null
+          address?: string | null
+          phone?: string | null
         }
       }
       professionals: {

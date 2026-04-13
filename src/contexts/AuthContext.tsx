@@ -33,6 +33,9 @@ function buildFallbackProfile(authUser: User): Profile {
       || authUser.user_metadata?.picture
       || null,
     role: 'client',
+    age: null,
+    address: null,
+    phone: null,
     created_at: new Date().toISOString(),
   };
 }

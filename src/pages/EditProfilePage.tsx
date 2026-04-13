@@ -47,6 +47,8 @@ export function EditProfilePage() {
             setLastName(parts.slice(1).join(' ') || '');
             setEmail(profile.email || '');
             setPhoto(profile.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=10b981&color=fff&bold=true`);
+            if (profile.age) setAge(String(profile.age));
+            if (profile.address) setAddress(profile.address);
         } else if (user) {
             const fullName = user.user_metadata?.name || '';
             const parts = fullName.split(' ');
@@ -181,23 +183,31 @@ export function EditProfilePage() {
 
         setIsSaving(true);
         setSaveSuccess(false);
+        setUploadError(null);
 
-        const fullName = `${name} ${lastName}`.trim();
+        try {
+            const fullName = `${name} ${lastName}`.trim();
 
-        const { error } = await updateProfile({
-            name: fullName,
-            email: email,
-        });
+            const { error } = await updateProfile({
+                name: fullName,
+                email: email,
+                age: age ? parseInt(age, 10) : null,
+                address: address || null,
+            });
 
-        setIsSaving(false);
-
-        if (error) {
-            setUploadError(error);
-        } else {
-            setSaveSuccess(true);
-            setTimeout(() => {
-                navigate(-1);
-            }, 800);
+            if (error) {
+                setUploadError(error);
+            } else {
+                setSaveSuccess(true);
+                setTimeout(() => {
+                    navigate(-1);
+                }, 800);
+            }
+        } catch (err) {
+            console.error('[EditProfile] Save error:', err);
+            setUploadError('Error al guardar. Intentá de nuevo.');
+        } finally {
+            setIsSaving(false);
         }
     };
 
