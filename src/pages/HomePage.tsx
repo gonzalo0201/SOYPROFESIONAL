@@ -1,5 +1,6 @@
-import { Search, Briefcase, Wrench, GraduationCap, HardHat, Flame } from 'lucide-react';
+import { Search, MapPin, Briefcase, Wrench, GraduationCap, HardHat, Flame } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useState } from 'react';
 import { ProfessionalCard } from '../components/ProfessionalCard';
 import { useProfessionals } from '../hooks/useProfessionals';
 
@@ -14,8 +15,23 @@ export function HomePage() {
     const navigate = useNavigate();
     const { professionals } = useProfessionals(); 
     
+    const [locationInput, setLocationInput] = useState('');
+    const [searchInput, setSearchInput] = useState('');
+    
     // Solo mostrar los destacados en el inicio
     const boostedPros = professionals.filter(pro => pro.isBoosted).slice(0, 4);
+
+    const handleSearch = (e: React.FormEvent) => {
+        e.preventDefault();
+        const params = new URLSearchParams();
+        if (locationInput) params.append('loc', locationInput);
+        if (searchInput) params.append('q', searchInput);
+        
+        navigate({
+            pathname: '/search',
+            search: params.toString()
+        });
+    };
 
     return (
         <div className="pb-24 bg-slate-50 min-h-screen">
@@ -45,23 +61,41 @@ export function HomePage() {
                         Conectamos a clientes con los mejores profesionales y oficios de la ciudad.
                     </p>
 
-                    {/* Fake Search Bar to jump to Search */}
-                    <button 
-                        onClick={() => navigate('/search')}
-                        className="w-full bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 p-4 rounded-2xl flex items-center gap-3 transition-colors text-left"
-                    >
-                        <Search className="text-emerald-400" size={24} />
-                        <div>
-                            <p className="font-bold text-white text-sm">¿Qué estás buscando?</p>
-                            <p className="text-xs text-slate-400">Plomero, electricista, flete...</p>
+                    {/* True Search Form */}
+                    <form onSubmit={handleSearch} className="bg-white/10 backdrop-blur-md border border-white/20 p-2 rounded-2xl flex flex-col gap-2">
+                        <div className="flex items-center gap-3 bg-slate-900/50 px-4 py-3 rounded-xl border border-white/10">
+                            <MapPin className="text-emerald-400 shrink-0" size={18} />
+                            <input 
+                                type="text"
+                                placeholder="Ej: Bahía Blanca, Neuquén..."
+                                value={locationInput}
+                                onChange={(e) => setLocationInput(e.target.value)}
+                                className="bg-transparent border-none outline-none text-white placeholder:text-slate-400 text-sm w-full"
+                            />
                         </div>
-                    </button>
+                        <div className="flex items-center gap-3 bg-slate-900/50 px-4 py-3 rounded-xl border border-white/10">
+                            <Search className="text-emerald-400 shrink-0" size={18} />
+                            <input 
+                                type="text"
+                                placeholder="Ej: Gasista, limpieza, abogado..."
+                                value={searchInput}
+                                onChange={(e) => setSearchInput(e.target.value)}
+                                className="bg-transparent border-none outline-none text-white placeholder:text-slate-400 text-sm w-full"
+                            />
+                        </div>
+                        <button 
+                            type="submit"
+                            className="bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3.5 rounded-xl uppercase tracking-wide text-sm transition-colors mt-1"
+                        >
+                            Buscar profesional
+                        </button>
+                    </form>
                 </div>
             </div>
 
             <div className="px-4 -mt-6 relative z-20">
                 {/* Categories */}
-                <div className="bg-white rounded-3xl p-5 shadow-sm border border-slate-100 mb-8">
+                <div className="bg-white rounded-3xl p-5 shadow-sm border border-slate-100 mb-8 mt-4">
                     <h3 className="font-bold text-slate-800 mb-4 text-sm uppercase tracking-wider">Explorar categorías</h3>
                     <div className="grid grid-cols-4 gap-3">
                         {MAIN_CATEGORIES.map((cat) => (

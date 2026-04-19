@@ -1,5 +1,5 @@
 import { Search, MapPin, Loader2, X } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useProfessionals } from '../hooks/useProfessionals';
 import { ProfessionalCard } from '../components/ProfessionalCard';
@@ -9,10 +9,13 @@ const CATEGORIES = ['Todos', 'Servicios', 'Técnicos', 'Profesionales', 'Oficios
 
 export function SearchPage() {
     const { professionals, isLoading } = useProfessionals();
-    const [searchParams] = useSearchParams();
-    const categoryParam = searchParams.get('category');
+    const [searchParams, setSearchParams] = useSearchParams();
     
-    // Map the simple IDs (servicio, tecnico) to the plural labels
+    // Initial Params
+    const categoryParam = searchParams.get('category');
+    const qParam = searchParams.get('q') || '';
+    const locParam = searchParams.get('loc') || '';
+
     const getInitialCategory = () => {
         if (!categoryParam) return 'Todos';
         if (categoryParam === 'servicio') return 'Servicios';
@@ -22,32 +25,48 @@ export function SearchPage() {
         return 'Todos';
     };
 
-    const initialCategory = getInitialCategory();
+    const [searchTerm, setSearchTerm] = useState(qParam);
+    const [locationTerm, setLocationTerm] = useState(locParam);
+    const [activeCategory, setActiveCategory] = useState(getInitialCategory());
 
-    const [searchTerm, setSearchTerm] = useState('');
-    const [activeCategory, setActiveCategory] = useState(initialCategory);
+    // Update URL params when user clears inputs so it doesn't get stuck
+    useEffect(() => {
+        const params = new URLSearchParams(searchParams);
+        if (searchTerm) params.set('q', searchTerm);
+        else params.delete('q');
+        
+        if (locationTerm) params.set('loc', locationTerm);
+        else params.delete('loc');
+        
+        setSearchParams(params, { replace: true });
+    }, [searchTerm, locationTerm, setSearchParams, searchParams]);
 
     const filteredPros = professionals.filter(pro => {
-        const matchesSearch = pro.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        const matchesSearch = !searchTerm || 
+            pro.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
             pro.trade.toLowerCase().includes(searchTerm.toLowerCase()) ||
             (pro.skills && pro.skills.some(s => s.toLowerCase().includes(searchTerm.toLowerCase())));
+            
+        // We lack location data for mock users, but this serves as a placeholder
+        // In a real database, you'd check pro.city or pro.address
+        const matchesLocation = !locationTerm || true; // Currently matching everything for location to not break demo
             
         let matchesCategory = true;
         if (activeCategory !== 'Todos') {
             const trade = pro.trade.toLowerCase();
-            if (activeCategory === 'Servicios') matchesCategory = ['jardinero', 'limpieza', 'niñera', 'flete'].some(t => trade.includes(t));
-            else if (activeCategory === 'Técnicos') matchesCategory = ['aire', 'pc', 'celular', 'electrodomésticos'].some(t => trade.includes(t));
-            else if (activeCategory === 'Profesionales') matchesCategory = ['abogado', 'contador', 'arquitecto', 'fotógrafo'].some(t => trade.includes(t));
-            else if (activeCategory === 'Oficios') matchesCategory = ['albañil', 'electricista', 'gasista', 'plomero', 'carpintero'].some(t => trade.includes(t));
+            if (activeCategory === 'Servicios') matchesCategory = ['jardinero', 'limpieza', 'niñera', 'flete', 'paseador'].some(t => trade.includes(t));
+            else if (activeCategory === 'Técnicos') matchesCategory = ['aire', 'pc', 'celular', 'electrodomésticos', 'redes', 'cámaras'].some(t => trade.includes(t));
+            else if (activeCategory === 'Profesionales') matchesCategory = ['abogado', 'contador', 'arquitecto', 'fotógrafo', 'profesor', 'diseñador'].some(t => trade.includes(t));
+            else if (activeCategory === 'Oficios') matchesCategory = ['albañil', 'electricista', 'gasista', 'plomero', 'carpintero', 'pintor', 'soldador'].some(t => trade.includes(t));
         }
 
-        return matchesSearch && matchesCategory;
+        return matchesSearch && matchesCategory && matchesLocation;
     });
 
     return (
         <div className="bg-slate-50 min-h-screen flex flex-col pb-24">
             {/* Header & Search */}
-            <div className="bg-slate-50 p-4 sticky top-0 z-10">
+            <div className="bg-slate-50 p-4 sticky top-0 z-10 border-b border-slate-100 shadow-sm">
                 <h1 className="text-xl font-bold text-slate-900 mb-4">Explorar</h1>
 
                 <div className="space-y-3">
@@ -58,9 +77,19 @@ export function SearchPage() {
                         </div>
                         <input
                             type="text"
-                            placeholder="Filtrar por localidad..."
-                            className="w-full bg-white pl-10 pr-4 py-3 rounded-xl border border-slate-200 outline-none focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 text-slate-800 placeholder:text-slate-400 text-sm font-medium transition-all"
+                            placeholder="Ej: Bahía Blanca, Neuquén, CABA..."
+                            value={locationTerm}
+                            onChange={(e) => setLocationTerm(e.target.value)}
+                            className="w-full bg-white pl-10 pr-10 py-3 rounded-xl border border-slate-200 outline-none focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 text-slate-800 placeholder:text-slate-400 text-sm font-medium transition-all"
                         />
+                        {locationTerm && (
+                            <button 
+                                onClick={() => setLocationTerm('')}
+                                className="absolute inset-y-0 right-3 flex items-center text-slate-400 hover:text-slate-600"
+                            >
+                                <X size={16} />
+                            </button>
+                        )}
                     </div>
                 
                     {/* Text Search Input */}
@@ -70,7 +99,7 @@ export function SearchPage() {
                         </div>
                         <input
                             type="text"
-                            placeholder="Buscar por nombre, oficio o actividad..."
+                            placeholder="Ej: Gasista matriculado, Profesor de inglés..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             className="w-full bg-white pl-10 pr-10 py-3 rounded-xl border border-slate-200 outline-none focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 text-slate-800 placeholder:text-slate-400 text-sm font-medium transition-all"
@@ -112,7 +141,7 @@ export function SearchPage() {
                     <p className="text-slate-400 text-sm">Cargando anuncios...</p>
                 </div>
             ) : (
-                <div className="px-4 space-y-4">
+                <div className="px-4 space-y-4 pt-4">
                     {filteredPros.length > 0 ? (
                         <>
                             {filteredPros.map(pro => (
@@ -121,12 +150,12 @@ export function SearchPage() {
                         </>
                     ) : (
                         <div className="text-center py-12">
-                            <p className="text-slate-500 font-medium mb-2">No se encontraron resultados para esta búsqueda.</p>
+                            <p className="text-slate-500 font-medium mb-2">No encontramos profesionales con esa búsqueda.</p>
                             <button 
-                                onClick={() => setSearchTerm('')} 
+                                onClick={() => { setSearchTerm(''); setLocationTerm(''); }} 
                                 className="text-emerald-500 font-bold text-sm"
                             >
-                                Limpiar búsqueda
+                                Limpiar filtros
                             </button>
                         </div>
                     )}
