@@ -1,10 +1,18 @@
 import { useState } from 'react';
-import { ArrowLeft, Camera, Check } from 'lucide-react';
+import { ArrowLeft, Camera, Check, X, Plus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import clsx from 'clsx';
 import { MAIN_CATEGORIES } from './HomePage';
 
 type Step = 1 | 2 | 3;
+
+// Suggested tags per category for quick-add
+const TAG_SUGGESTIONS: Record<string, string[]> = {
+    servicio: ['Limpieza general', 'Limpieza de oficinas', 'Niñera', 'Cuidado de adultos mayores', 'Flete', 'Mudanza', 'Lavado de autos', 'Paseador de perros'],
+    tecnico: ['Instalación de aire acondicionado', 'Reparación de PC', 'Reparación de celulares', 'Sonido e iluminación', 'Cámaras de seguridad', 'Redes Wi-Fi', 'Reparación de electrodomésticos'],
+    profesional: ['Derecho laboral', 'Derecho civil', 'Diseño de planos', 'Fotografía de eventos', 'Contabilidad', 'Marketing digital', 'Clases particulares', 'Traducción'],
+    oficio: ['Corte de césped', 'Poda de cercos', 'Limpieza de terrenos', 'Riego automático', 'Pintura interior', 'Pintura exterior', 'Instalación eléctrica', 'Destape de cañerías', 'Colocación de cerámicos', 'Construcción en seco (Durlock)', 'Soldadura', 'Carpintería a medida'],
+};
 
 export function PostPage() {
     const navigate = useNavigate();
@@ -19,6 +27,19 @@ export function PostPage() {
     const [name, setName] = useState('');
     const [whatsapp, setWhatsapp] = useState('');
     const [email, setEmail] = useState('');
+    const [tags, setTags] = useState<string[]>([]);
+    const [newTag, setNewTag] = useState('');
+
+    const addTag = (tag: string) => {
+        const trimmed = tag.trim();
+        if (!trimmed || tags.includes(trimmed)) return;
+        setTags(prev => [...prev, trimmed]);
+        setNewTag('');
+    };
+
+    const removeTag = (tag: string) => {
+        setTags(prev => prev.filter(t => t !== tag));
+    };
 
     const nextStep = () => {
         if (step === 1 && !category) return;
@@ -35,6 +56,8 @@ export function PostPage() {
         alert('¡Anuncio publicado con éxito!');
         navigate('/');
     };
+
+    const suggestions = category ? (TAG_SUGGESTIONS[category] || []).filter(s => !tags.includes(s)) : [];
 
     return (
         <div className="bg-slate-50 min-h-screen flex flex-col pb-24">
@@ -72,7 +95,7 @@ export function PostPage() {
                         {MAIN_CATEGORIES.map((cat) => (
                             <button
                                 key={cat.id}
-                                onClick={() => setCategory(cat.id)}
+                                onClick={() => { setCategory(cat.id); setTags([]); }}
                                 className={clsx(
                                     "bg-white rounded-2xl p-6 shadow-sm border flex flex-col items-center justify-center gap-3 transition-all",
                                     category === cat.id ? "border-emerald-400 ring-2 ring-emerald-400/20" : "border-slate-100 hover:border-emerald-200"
@@ -101,7 +124,7 @@ export function PostPage() {
                 </div>
             )}
 
-            {/* Step 2: Detalles */}
+            {/* Step 2: Detalles + Tags */}
             {step === 2 && (
                 <div className="p-4 flex-1 space-y-6">
                     <div>
@@ -140,6 +163,71 @@ export function PostPage() {
                             rows={4}
                             className="w-full bg-white px-4 py-3 rounded-xl border border-slate-200 outline-none focus:border-emerald-400 text-sm resize-none"
                         />
+                    </div>
+
+                    {/* Tags Section */}
+                    <div>
+                        <label className="block text-sm font-bold text-slate-900 mb-2">
+                            Actividades / Tags <span className="text-slate-400 font-normal text-xs">({tags.length})</span>
+                        </label>
+                        <p className="text-xs text-slate-500 mb-3">Agregá tags para que los clientes te encuentren más fácil al buscar.</p>
+
+                        {/* Current Tags */}
+                        {tags.length > 0 && (
+                            <div className="flex flex-wrap gap-2 mb-3">
+                                {tags.map(tag => (
+                                    <span key={tag} className="bg-emerald-50 text-emerald-700 text-xs font-bold px-3 py-1.5 rounded-lg border border-emerald-100 flex items-center gap-1.5">
+                                        {tag}
+                                        <button onClick={() => removeTag(tag)} className="text-emerald-400 hover:text-red-500 transition-colors">
+                                            <X size={12} />
+                                        </button>
+                                    </span>
+                                ))}
+                            </div>
+                        )}
+
+                        {/* Add Tag Input */}
+                        <div className="flex gap-2">
+                            <input
+                                type="text"
+                                value={newTag}
+                                onChange={(e) => setNewTag(e.target.value)}
+                                onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addTag(newTag))}
+                                placeholder="Ej: Corte de césped, Poda de cercos..."
+                                className="flex-1 bg-white px-4 py-3 rounded-xl border border-slate-200 outline-none focus:border-emerald-400 text-sm"
+                            />
+                            <button
+                                onClick={() => addTag(newTag)}
+                                disabled={!newTag.trim()}
+                                className={clsx(
+                                    "p-3 rounded-xl transition-all",
+                                    newTag.trim()
+                                        ? "bg-emerald-500 text-white hover:bg-emerald-600 shadow-md"
+                                        : "bg-slate-100 text-slate-300 cursor-not-allowed"
+                                )}
+                            >
+                                <Plus size={20} />
+                            </button>
+                        </div>
+
+                        {/* Tag Suggestions */}
+                        {suggestions.length > 0 && (
+                            <div className="mt-3">
+                                <p className="text-[10px] text-slate-400 uppercase tracking-wider font-bold mb-2">Sugerencias</p>
+                                <div className="flex flex-wrap gap-1.5">
+                                    {suggestions.slice(0, 8).map(tag => (
+                                        <button
+                                            key={tag}
+                                            onClick={() => addTag(tag)}
+                                            className="bg-slate-100 text-slate-600 text-[11px] font-medium px-2.5 py-1.5 rounded-lg border border-slate-200 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-200 transition-colors flex items-center gap-1"
+                                        >
+                                            <Plus size={10} />
+                                            {tag}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
                     </div>
 
                     <div>
@@ -216,6 +304,18 @@ export function PostPage() {
                             <p><span className="text-slate-500 font-medium">Subcategoría:</span> <span className="capitalize">{subcategory}</span></p>
                             <p><span className="text-slate-500 font-medium">Título:</span> {title}</p>
                             <p><span className="text-slate-500 font-medium">Localidad:</span> {location}</p>
+                            {tags.length > 0 && (
+                                <div>
+                                    <span className="text-slate-500 font-medium">Tags:</span>
+                                    <div className="flex flex-wrap gap-1.5 mt-1.5">
+                                        {tags.map(tag => (
+                                            <span key={tag} className="bg-emerald-50 text-emerald-700 text-[11px] font-bold px-2 py-1 rounded-md border border-emerald-100">
+                                                {tag}
+                                            </span>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     </div>
 
