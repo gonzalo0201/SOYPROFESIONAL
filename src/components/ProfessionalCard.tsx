@@ -15,14 +15,14 @@ export function ProfessionalCard({ professional: pro }: ProfessionalCardProps) {
             onClick={() => navigate(`/professional/${pro.id}`)}
             className={clsx(
                 "p-5 rounded-2xl shadow-sm border relative overflow-hidden transition-all cursor-pointer hover:shadow-md",
-                pro.isBoosted ? "bg-[#FFF8E1] border-amber-200" : "bg-white border-slate-100"
+                pro.isBoosted ? "bg-emerald-50/50 border-emerald-200" : "bg-white border-slate-100"
             )}
         >
             {pro.isBoosted && (
-                <div className="absolute top-0 right-0 bg-gradient-to-bl from-amber-100 to-white pl-3 pb-3 pt-1 pr-1 rounded-bl-3xl">
-                    <div className="flex items-center gap-1 bg-amber-100/50 px-2 py-0.5 rounded-full">
-                        <Flame size={12} className="text-orange-500 fill-orange-500" />
-                        <span className="text-[10px] font-bold text-orange-700 uppercase tracking-wide">Destacado</span>
+                <div className="absolute top-0 right-0 bg-gradient-to-bl from-emerald-100 to-white pl-3 pb-3 pt-1 pr-1 rounded-bl-3xl">
+                    <div className="flex items-center gap-1 bg-emerald-100/50 px-2 py-0.5 rounded-full">
+                        <Flame size={12} className="text-emerald-600 fill-emerald-600" />
+                        <span className="text-[10px] font-bold text-emerald-700 uppercase tracking-wide">Destacado</span>
                     </div>
                 </div>
             )}
@@ -32,11 +32,11 @@ export function ProfessionalCard({ professional: pro }: ProfessionalCardProps) {
                 <div className="relative shrink-0">
                     <img src={pro.image} alt={pro.name} className={clsx(
                         "w-14 h-14 rounded-xl object-cover",
-                        pro.isBoosted ? "ring-2 ring-amber-400 ring-offset-2" : ""
+                        pro.isBoosted ? "ring-2 ring-emerald-400 ring-offset-2" : ""
                     )} />
                     <div className={clsx(
                         "absolute -bottom-1 -right-1 w-4 h-4 border-2 border-white rounded-full",
-                        pro.status === 'Disponible' ? "bg-emerald-500" : "bg-amber-500" // Fallback fallback to emerald
+                        "bg-emerald-500"
                     )}></div>
                 </div>
 
@@ -46,14 +46,14 @@ export function ProfessionalCard({ professional: pro }: ProfessionalCardProps) {
                         <h3 className="font-bold text-slate-900 text-lg leading-tight">{pro.name}</h3>
                         {pro.isVerified && <CheckCircle size={16} className="text-emerald-500 fill-transparent" strokeWidth={3} />}
                         {pro.isEarlyAdopter && (
-                            <span className="text-[10px] font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-100">
+                            <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100">
                                 Early Adopter
                             </span>
                         )}
                     </div>
                     <p className="text-slate-500 text-sm mt-0.5">{pro.trade}</p>
                     <div className="flex items-center gap-1 mt-1 text-sm">
-                        <Star size={14} className="text-amber-400 fill-current" />
+                        <Star size={14} className="text-emerald-400 fill-current" />
                         <span className="font-bold text-slate-900">{pro.rating}</span>
                         <span className="text-slate-500">({pro.reviews})</span>
                         <span className="text-slate-300 mx-1">•</span>

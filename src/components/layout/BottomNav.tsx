@@ -25,7 +25,7 @@ export function BottomNav() {
                         to={item.path}
                         className={clsx(
                             "flex flex-col items-center justify-center w-full h-full space-y-1 transition-colors relative",
-                            isActive ? "text-amber-500" : "text-slate-500 hover:text-slate-700"
+                            isActive ? "text-emerald-500" : "text-slate-500 hover:text-slate-700"
                         )}
                     >
                         <div className="relative">

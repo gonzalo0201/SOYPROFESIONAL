@@ -32,7 +32,6 @@ export function PostPage() {
     };
 
     const handlePublish = () => {
-        // Mock publish
         alert('¡Anuncio publicado con éxito!');
         navigate('/');
     };
@@ -51,15 +50,15 @@ export function PostPage() {
                 {/* Progress Bar */}
                 <div className="flex gap-2">
                     <div className="flex-1 flex flex-col gap-2">
-                        <div className={clsx("h-1 rounded-full", step >= 1 ? "bg-amber-400" : "bg-slate-200")} />
+                        <div className={clsx("h-1 rounded-full", step >= 1 ? "bg-emerald-500" : "bg-slate-200")} />
                         <span className={clsx("text-[10px] text-center font-bold", step >= 1 ? "text-slate-800" : "text-slate-400")}>Categoría</span>
                     </div>
                     <div className="flex-1 flex flex-col gap-2">
-                        <div className={clsx("h-1 rounded-full", step >= 2 ? "bg-amber-400" : "bg-slate-200")} />
+                        <div className={clsx("h-1 rounded-full", step >= 2 ? "bg-emerald-500" : "bg-slate-200")} />
                         <span className={clsx("text-[10px] text-center font-bold", step >= 2 ? "text-slate-800" : "text-slate-400")}>Detalles</span>
                     </div>
                     <div className="flex-1 flex flex-col gap-2">
-                        <div className={clsx("h-1 rounded-full", step >= 3 ? "bg-amber-400" : "bg-slate-200")} />
+                        <div className={clsx("h-1 rounded-full", step >= 3 ? "bg-emerald-500" : "bg-slate-200")} />
                         <span className={clsx("text-[10px] text-center font-bold", step >= 3 ? "text-slate-800" : "text-slate-400")}>Fotos</span>
                     </div>
                 </div>
@@ -76,7 +75,7 @@ export function PostPage() {
                                 onClick={() => setCategory(cat.id)}
                                 className={clsx(
                                     "bg-white rounded-2xl p-6 shadow-sm border flex flex-col items-center justify-center gap-3 transition-all",
-                                    category === cat.id ? "border-amber-400 ring-2 ring-amber-400/20" : "border-slate-100 hover:border-amber-200"
+                                    category === cat.id ? "border-emerald-400 ring-2 ring-emerald-400/20" : "border-slate-100 hover:border-emerald-200"
                                 )}
                             >
                                 <div className={clsx(
@@ -94,7 +93,7 @@ export function PostPage() {
                         <button
                             onClick={nextStep}
                             disabled={!category}
-                            className="w-full bg-[#f6d061] hover:bg-[#ebd061] text-slate-800 py-3.5 rounded-xl font-bold transition-colors disabled:opacity-50 disabled:cursor-not-allowed uppercase tracking-wide"
+                            className="w-full bg-emerald-500 hover:bg-emerald-600 text-white py-3.5 rounded-xl font-bold transition-colors disabled:opacity-50 disabled:cursor-not-allowed uppercase tracking-wide"
                         >
                             Siguiente →
                         </button>
@@ -112,7 +111,7 @@ export function PostPage() {
                             value={title}
                             onChange={(e) => setTitle(e.target.value)}
                             placeholder="Ej: Gasista matriculado, Plomero 24hs..."
-                            className="w-full bg-white px-4 py-3 rounded-xl border border-slate-200 outline-none focus:border-amber-400 text-sm"
+                            className="w-full bg-white px-4 py-3 rounded-xl border border-slate-200 outline-none focus:border-emerald-400 text-sm"
                         />
                     </div>
 
@@ -121,7 +120,7 @@ export function PostPage() {
                         <select
                             value={subcategory}
                             onChange={(e) => setSubcategory(e.target.value)}
-                            className="w-full bg-white px-4 py-3 rounded-xl border border-slate-200 outline-none focus:border-amber-400 text-sm appearance-none"
+                            className="w-full bg-white px-4 py-3 rounded-xl border border-slate-200 outline-none focus:border-emerald-400 text-sm appearance-none"
                         >
                             <option value="plomeria">Plomería</option>
                             <option value="electricidad">Electricidad</option>
@@ -139,7 +138,7 @@ export function PostPage() {
                             onChange={(e) => setDescription(e.target.value)}
                             placeholder="Describí tus servicios, años de experiencia, zonas de cobertura..."
                             rows={4}
-                            className="w-full bg-white px-4 py-3 rounded-xl border border-slate-200 outline-none focus:border-amber-400 text-sm resize-none"
+                            className="w-full bg-white px-4 py-3 rounded-xl border border-slate-200 outline-none focus:border-emerald-400 text-sm resize-none"
                         />
                     </div>
 
@@ -150,7 +149,7 @@ export function PostPage() {
                             value={location}
                             onChange={(e) => setLocation(e.target.value)}
                             placeholder="Ej: San Martín de los Andes"
-                            className="w-full bg-white px-4 py-3 rounded-xl border border-slate-200 outline-none focus:border-amber-400 text-sm"
+                            className="w-full bg-white px-4 py-3 rounded-xl border border-slate-200 outline-none focus:border-emerald-400 text-sm"
                         />
                     </div>
 
@@ -162,21 +161,21 @@ export function PostPage() {
                                 value={name}
                                 onChange={(e) => setName(e.target.value)}
                                 placeholder="Tu nombre"
-                                className="w-full bg-white px-4 py-3 rounded-xl border border-slate-200 outline-none focus:border-amber-400 text-sm"
+                                className="w-full bg-white px-4 py-3 rounded-xl border border-slate-200 outline-none focus:border-emerald-400 text-sm"
                             />
                             <input
                                 type="tel"
                                 value={whatsapp}
                                 onChange={(e) => setWhatsapp(e.target.value)}
                                 placeholder="WhatsApp (ej: 5491112345678)"
-                                className="w-full bg-white px-4 py-3 rounded-xl border border-slate-200 outline-none focus:border-amber-400 text-sm"
+                                className="w-full bg-white px-4 py-3 rounded-xl border border-slate-200 outline-none focus:border-emerald-400 text-sm"
                             />
                             <input
                                 type="email"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                                 placeholder="Email (opcional)"
-                                className="w-full bg-white px-4 py-3 rounded-xl border border-slate-200 outline-none focus:border-amber-400 text-sm"
+                                className="w-full bg-white px-4 py-3 rounded-xl border border-slate-200 outline-none focus:border-emerald-400 text-sm"
                             />
                         </div>
                     </div>
@@ -191,7 +190,7 @@ export function PostPage() {
                         <button
                             onClick={nextStep}
                             disabled={!title || !description || !location || !name || !whatsapp}
-                            className="flex-1 bg-[#f6d061] hover:bg-[#ebd061] text-slate-800 py-3.5 rounded-xl font-bold transition-colors disabled:opacity-50 disabled:cursor-not-allowed uppercase tracking-wide"
+                            className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white py-3.5 rounded-xl font-bold transition-colors disabled:opacity-50 disabled:cursor-not-allowed uppercase tracking-wide"
                         >
                             Siguiente →
                         </button>
@@ -229,7 +228,7 @@ export function PostPage() {
                         </button>
                         <button
                             onClick={handlePublish}
-                            className="flex-[2] bg-[#ffc107] hover:bg-[#e0a800] text-slate-900 py-3.5 rounded-xl font-black transition-colors flex items-center justify-center gap-2 shadow-amber-500/20 shadow-lg"
+                            className="flex-[2] bg-emerald-500 hover:bg-emerald-600 text-white py-3.5 rounded-xl font-black transition-colors flex items-center justify-center gap-2 shadow-emerald-500/20 shadow-lg"
                         >
                             <Check size={18} strokeWidth={3} /> Publicar
                         </button>

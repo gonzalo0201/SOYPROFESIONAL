@@ -15,7 +15,7 @@ export function ProfessionalProfilePage() {
     if (proLoading) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-slate-50">
-                <Loader2 size={32} className="text-amber-500 animate-spin" />
+                <Loader2 size={32} className="text-emerald-500 animate-spin" />
             </div>
         );
     }
@@ -25,7 +25,7 @@ export function ProfessionalProfilePage() {
             <div className="min-h-screen flex items-center justify-center bg-slate-50">
                 <div className="text-center">
                     <p className="text-slate-400 mb-4">Profesional no encontrado</p>
-                    <button onClick={() => navigate(-1)} className="text-amber-600 font-bold text-sm">Volver</button>
+                    <button onClick={() => navigate(-1)} className="text-emerald-600 font-bold text-sm">Volver</button>
                 </div>
             </div>
         );
@@ -41,7 +41,7 @@ export function ProfessionalProfilePage() {
                 key={i}
                 size={14}
                 className={clsx(
-                    i < Math.floor(rating) ? 'text-amber-400 fill-amber-400' : 'text-slate-200 fill-slate-200'
+                    i < Math.floor(rating) ? 'text-emerald-400 fill-emerald-400' : 'text-slate-200 fill-slate-200'
                 )}
             />
         ));
@@ -61,7 +61,6 @@ export function ProfessionalProfilePage() {
     const mockPhone = "5492994123456";
 
     const handleWhatsAppClick = () => {
-        // En código real, phone provendría de professional.phone
         const text = encodeURIComponent(`Hola ${professional.name}, vi tu perfil en SoyProfesional y me gustaría consultarte por tus servicios.`);
         window.open(`https://wa.me/${mockPhone}?text=${text}`, '_blank');
     };
@@ -167,10 +166,11 @@ export function ProfessionalProfilePage() {
                             </div>
                         </div>
 
-                        {/* WhatsApp CTA Button */}
+                        {/* WhatsApp CTA Button — uses WhatsApp's native green */}
                         <button 
                             onClick={handleWhatsAppClick}
-                            className="w-full mt-2 bg-amber-500 hover:bg-amber-400 text-slate-900 py-3.5 rounded-xl font-black text-sm flex items-center justify-center gap-2 active:scale-[0.98] transition-all shadow-md shadow-amber-500/20"
+                            className="w-full mt-2 py-3.5 rounded-xl font-black text-sm flex items-center justify-center gap-2 active:scale-[0.98] transition-all shadow-md text-white"
+                            style={{ backgroundColor: '#25D366', boxShadow: '0 4px 14px rgba(37, 211, 102, 0.3)' }}
                         >
                             <MessageCircle size={18} />
                             Contactar por WhatsApp
@@ -183,7 +183,7 @@ export function ProfessionalProfilePage() {
                     <h2 className="font-bold text-slate-900 text-sm mb-4">Trabajos realizados ({allPhotos.length})</h2>
                     {portfolioLoading ? (
                         <div className="flex items-center justify-center py-6">
-                            <Loader2 size={24} className="text-amber-500 animate-spin" />
+                            <Loader2 size={24} className="text-emerald-500 animate-spin" />
                         </div>
                     ) : allPhotos.length > 0 ? (
                         <div className="grid grid-cols-2 gap-2">
@@ -201,12 +201,12 @@ export function ProfessionalProfilePage() {
                 {/* Reviews */}
                 <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
                     <h2 className="font-bold text-slate-900 text-sm flex items-center gap-2 mb-4">
-                        <Star size={14} className="text-amber-400 fill-amber-400" />
+                        <Star size={14} className="text-emerald-500 fill-emerald-500" />
                         Valoraciones
                     </h2>
 
                     {reviewsLoading ? (
-                        <Loader2 size={24} className="text-amber-500 animate-spin mx-auto my-6" />
+                        <Loader2 size={24} className="text-emerald-500 animate-spin mx-auto my-6" />
                     ) : (
                         <div className="space-y-4">
                             {reviews.map(review => (

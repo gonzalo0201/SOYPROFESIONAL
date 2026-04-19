@@ -12,7 +12,6 @@ export function SearchPage() {
     const [searchParams] = useSearchParams();
     const categoryParam = searchParams.get('category');
     
-    // Map initial param to chip
     const initialCategory = categoryParam 
         ? CATEGORIES.find(c => c.toLowerCase().includes(categoryParam.toLowerCase())) || 'Todos'
         : 'Todos';
@@ -24,18 +23,13 @@ export function SearchPage() {
         const matchesSearch = pro.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
             pro.trade.toLowerCase().includes(searchTerm.toLowerCase());
             
-        // Basic grouping logic for categories demo
         let matchesCategory = true;
         if (activeCategory !== 'Todos') {
-            // Rough mapping just to see some filtering in action
             const trade = pro.trade.toLowerCase();
             if (activeCategory === 'Servicio') matchesCategory = ['jardinero', 'limpieza', 'niñera', 'flete'].some(t => trade.includes(t));
             else if (activeCategory === 'Técnico') matchesCategory = ['aire', 'pc', 'celular', 'electrodomésticos'].some(t => trade.includes(t));
             else if (activeCategory === 'Profesional') matchesCategory = ['abogado', 'contador', 'arquitecto', 'fotógrafo'].some(t => trade.includes(t));
             else if (activeCategory === 'Oficio') matchesCategory = ['albañil', 'electricista', 'gasista', 'plomero', 'carpintero'].some(t => trade.includes(t));
-            
-            // Fallback: If no match to our basic array, assign them randomly or show them all
-            // matchesCategory = true;
         }
 
         return matchesSearch && matchesCategory;
@@ -44,19 +38,19 @@ export function SearchPage() {
     return (
         <div className="bg-slate-50 min-h-screen flex flex-col pb-24">
             {/* Header & Search */}
-            <div className="bg-slate-50 p-4 sticky top-0 z-10 z-10">
+            <div className="bg-slate-50 p-4 sticky top-0 z-10">
                 <h1 className="text-xl font-bold text-slate-900 mb-4">Explorar</h1>
 
                 <div className="space-y-3">
                     {/* Location Input */}
                     <div className="relative">
                         <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
-                            <MapPin className="text-amber-500" size={18} />
+                            <MapPin className="text-emerald-500" size={18} />
                         </div>
                         <input
                             type="text"
                             placeholder="Filtrar por localidad..."
-                            className="w-full bg-white pl-10 pr-4 py-3 rounded-xl border border-slate-200 outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 text-slate-800 placeholder:text-slate-400 text-sm font-medium transition-all"
+                            className="w-full bg-white pl-10 pr-4 py-3 rounded-xl border border-slate-200 outline-none focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 text-slate-800 placeholder:text-slate-400 text-sm font-medium transition-all"
                         />
                     </div>
                 
@@ -70,7 +64,7 @@ export function SearchPage() {
                             placeholder="Buscar anuncios..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full bg-white pl-10 pr-4 py-3 rounded-xl border border-slate-200 outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 text-slate-800 placeholder:text-slate-400 text-sm font-medium transition-all"
+                            className="w-full bg-white pl-10 pr-4 py-3 rounded-xl border border-slate-200 outline-none focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 text-slate-800 placeholder:text-slate-400 text-sm font-medium transition-all"
                         />
                     </div>
                 </div>
@@ -84,7 +78,7 @@ export function SearchPage() {
                             className={clsx(
                                 "whitespace-nowrap px-4 py-1.5 rounded-full text-sm font-bold border transition-colors",
                                 activeCategory === cat 
-                                    ? "bg-slate-900 text-white border-slate-900" 
+                                    ? "bg-emerald-500 text-white border-emerald-500" 
                                     : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
                             )}
                         >
@@ -97,7 +91,7 @@ export function SearchPage() {
             {/* Results List */}
             {isLoading ? (
                 <div className="flex flex-col items-center py-12 gap-3">
-                    <Loader2 size={28} className="text-amber-500 animate-spin" />
+                    <Loader2 size={28} className="text-emerald-500 animate-spin" />
                     <p className="text-slate-400 text-sm">Cargando anuncios...</p>
                 </div>
             ) : (
