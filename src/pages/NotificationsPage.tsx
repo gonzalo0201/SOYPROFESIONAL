@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-    ArrowLeft, Star, MessageCircle, UserCheck, Flame, Shield,
+    ArrowLeft, Star, MessageCircle, UserCheck, Shield,
     Clock, Bell, Trash2
 } from 'lucide-react';
 import clsx from 'clsx';
 
-type NotificationType = 'review' | 'message' | 'follow' | 'boost' | 'verification' | 'system';
+type NotificationType = 'review' | 'contact' | 'follow' | 'verification' | 'system';
 
 interface Notification {
     id: string;
@@ -32,31 +32,30 @@ const MOCK_NOTIFICATIONS: Notification[] = [
     },
     {
         id: '2',
-        type: 'message',
-        title: 'Nuevo mensaje',
-        body: 'Carlos Mendoza: "Hola, ¿podrías pasar mañana a las 10hs?"',
+        type: 'contact',
+        title: 'Te contactaron por WhatsApp',
+        body: 'Carlos Mendoza vio tu perfil y te contactó por WhatsApp',
         avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=80&h=80&fit=crop',
         time: 'Hace 30 min',
         isRead: false,
-        actionUrl: '/chat/1',
     },
     {
         id: '3',
         type: 'follow',
-        title: 'Nuevo seguidor',
-        body: 'Ana Rodríguez empezó a seguir tu perfil profesional',
+        title: 'Nuevo favorito',
+        body: 'Ana Rodríguez agregó tu perfil a sus favoritos',
         avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=80&h=80&fit=crop',
         time: 'Hace 2 hs',
         isRead: false,
     },
     {
         id: '4',
-        type: 'boost',
-        title: '¡Tu perfil está en llamas! 🔥',
-        body: 'Tu perfil fue visto 47 veces esta semana. ¡Impulsalo para llegar a más clientes!',
-        time: 'Hace 3 hs',
+        type: 'system',
+        title: '¡Bienvenido a SoyProfesional!',
+        body: 'Completá tu perfil para empezar a aparecer en las búsquedas de tu zona.',
+        time: 'Ayer',
         isRead: true,
-        actionUrl: '/boost',
+        actionUrl: '/edit-profile',
     },
     {
         id: '5',
@@ -66,44 +65,23 @@ const MOCK_NOTIFICATIONS: Notification[] = [
         avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop',
         time: 'Hace 5 hs',
         isRead: true,
-        actionUrl: '/chat/2',
     },
     {
         id: '6',
-        type: 'system',
-        title: '¡Bienvenido a SOYPROFESIONAL!',
-        body: 'Completá tu perfil para empezar a aparecer en las búsquedas de tu zona.',
-        time: 'Ayer',
-        isRead: true,
-        actionUrl: '/edit-profile',
-    },
-    {
-        id: '7',
         type: 'verification',
         title: 'Verificación pendiente',
         body: 'Subí una foto de tu matrícula o certificado para verificar tu cuenta.',
         time: 'Hace 2 días',
         isRead: true,
     },
-    {
-        id: '8',
-        type: 'message',
-        title: 'Nuevo mensaje',
-        body: 'Diego López: "Gracias por el presupuesto, lo voy a pensar"',
-        avatar: 'https://images.unsplash.com/photo-1599566150163-29194dcaad36?w=80&h=80&fit=crop',
-        time: 'Hace 2 días',
-        isRead: true,
-        actionUrl: '/chat/3',
-    },
 ];
 
 function getNotificationIcon(type: NotificationType) {
     switch (type) {
-        case 'review': return { icon: Star, bg: 'bg-amber-500', color: 'text-amber-500' };
-        case 'message': return { icon: MessageCircle, bg: 'bg-blue-500', color: 'text-blue-500' };
-        case 'follow': return { icon: UserCheck, bg: 'bg-purple-500', color: 'text-purple-500' };
-        case 'boost': return { icon: Flame, bg: 'bg-orange-500', color: 'text-orange-500' };
-        case 'verification': return { icon: Shield, bg: 'bg-emerald-500', color: 'text-emerald-500' };
+        case 'review': return { icon: Star, bg: 'bg-emerald-500', color: 'text-emerald-500' };
+        case 'contact': return { icon: MessageCircle, bg: 'bg-green-500', color: 'text-green-500' };
+        case 'follow': return { icon: UserCheck, bg: 'bg-teal-500', color: 'text-teal-500' };
+        case 'verification': return { icon: Shield, bg: 'bg-cyan-600', color: 'text-cyan-600' };
         case 'system': return { icon: Bell, bg: 'bg-slate-500', color: 'text-slate-500' };
     }
 }
@@ -227,12 +205,10 @@ export function NotificationsPage() {
                                     )}
                                     onClick={() => handleNotificationClick(notif)}
                                 >
-                                    {/* Unread indicator */}
                                     {!notif.isRead && (
                                         <div className="absolute left-1.5 top-1/2 -translate-y-1/2 w-2 h-2 bg-emerald-500 rounded-full" />
                                     )}
 
-                                    {/* Avatar / Icon */}
                                     <div className="shrink-0 relative">
                                         {notif.avatar ? (
                                             <div className="relative">
@@ -258,7 +234,6 @@ export function NotificationsPage() {
                                         )}
                                     </div>
 
-                                    {/* Content */}
                                     <div className="flex-1 min-w-0">
                                         <div className="flex items-start justify-between gap-2">
                                             <h3 className={clsx(
@@ -282,7 +257,6 @@ export function NotificationsPage() {
                                         </p>
                                     </div>
 
-                                    {/* Delete */}
                                     <button
                                         onClick={(e) => { e.stopPropagation(); removeNotification(notif.id); }}
                                         className="shrink-0 text-slate-400 hover:text-red-500 active:text-red-600 transition-colors p-2 -mr-1 self-center rounded-full active:bg-red-50"

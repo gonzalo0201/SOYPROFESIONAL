@@ -511,7 +511,7 @@ export function OnboardingPage() {
                         {/* Tips */}
                         <div className="flex gap-2 mb-8 w-full max-w-sm">
                             <div className="flex-1 bg-white/5 rounded-xl p-3 border border-white/10">
-                                <Star size={18} className="text-amber-400 mx-auto mb-1" />
+                                <Star size={18} className="text-emerald-400 mx-auto mb-1" />
                                 <p className="text-[10px] text-slate-400 leading-tight">Completá tu portafolio para destacar</p>
                             </div>
                             <div className="flex-1 bg-white/5 rounded-xl p-3 border border-white/10">

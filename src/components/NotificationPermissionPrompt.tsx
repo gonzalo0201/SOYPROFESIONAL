@@ -68,8 +68,8 @@ export function NotificationPermissionPrompt() {
                         </div>
 
                         <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 bg-amber-50 rounded-xl flex items-center justify-center shrink-0">
-                                <Star size={18} className="text-amber-500" />
+                            <div className="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center shrink-0">
+                                <Star size={18} className="text-emerald-500" />
                             </div>
                             <div>
                                 <p className="text-sm font-bold text-slate-900">Nuevas reseñas</p>
@@ -125,13 +125,13 @@ export function NotificationDeniedBanner() {
     if (!isSupported || permission !== 'denied') return null;
 
     return (
-        <div className="mx-4 mb-3 bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-start gap-3">
-            <div className="w-9 h-9 bg-amber-100 rounded-full flex items-center justify-center shrink-0">
-                <Bell size={16} className="text-amber-600" />
+        <div className="mx-4 mb-3 bg-orange-50 border border-orange-200 rounded-2xl p-4 flex items-start gap-3">
+            <div className="w-9 h-9 bg-orange-100 rounded-full flex items-center justify-center shrink-0">
+                <Bell size={16} className="text-orange-600" />
             </div>
             <div>
-                <p className="text-sm font-bold text-amber-900">Notificaciones bloqueadas</p>
-                <p className="text-xs text-amber-700 mt-0.5 leading-relaxed">
+                <p className="text-sm font-bold text-orange-900">Notificaciones bloqueadas</p>
+                <p className="text-xs text-orange-700 mt-0.5 leading-relaxed">
                     Las notificaciones están desactivadas. Para activarlas, andá a la configuración de tu navegador → Permisos → Notificaciones.
                 </p>
             </div>

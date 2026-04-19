@@ -163,8 +163,8 @@ export function InstallPrompt() {
                             </div>
 
                             <div className="flex items-start gap-4">
-                                <div className="w-10 h-10 bg-amber-50 rounded-full flex items-center justify-center shrink-0">
-                                    <Download size={18} className="text-amber-500" />
+                                <div className="w-10 h-10 bg-emerald-50 rounded-full flex items-center justify-center shrink-0">
+                                    <Download size={18} className="text-emerald-500" />
                                 </div>
                                 <div>
                                     <p className="font-semibold text-slate-900 text-sm">3. Tocá "Agregar"</p>
