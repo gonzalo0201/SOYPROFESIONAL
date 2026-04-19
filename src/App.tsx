@@ -3,15 +3,12 @@ import { Layout } from './components/layout/Layout';
 import { HomePage } from './pages/HomePage';
 import { PostPage } from './pages/PostPage';
 import { ProfilePage } from './pages/ProfilePage';
-import { LocationSettingsPage } from './pages/LocationSettingsPage';
 import { SearchPage } from './pages/SearchPage';
-import { BoostPage } from './pages/BoostPage';
 import { EditProfilePage } from './pages/EditProfilePage';
 import { ProfessionalProfilePage } from './pages/ProfessionalProfilePage';
 import { LoginPage } from './pages/LoginPage';
 import { OnboardingPage } from './pages/OnboardingPage';
 import { NotificationsPage } from './pages/NotificationsPage';
-import { ReviewProvider } from './contexts/ReviewContext';
 import { LocationProvider } from './contexts/LocationContext';
 import { NotificationProvider } from './contexts/NotificationContext';
 import { AuthProvider } from './contexts/AuthContext';
@@ -24,19 +21,14 @@ function App() {
     <AuthProvider>
       <LocationProvider>
       <NotificationProvider>
-        <ReviewProvider>
           <BrowserRouter>
             <Routes>
               <Route element={<Layout />}>
                 <Route path="/" element={<HomePage />} />
                 <Route path="/search" element={<SearchPage />} />
                 <Route path="/post" element={<PostPage />} />
-                {/* Temporary placeholder for favorites */}
                 <Route path="/favorites" element={<div className="flex h-full items-center justify-center p-8 text-center text-slate-500 font-medium">Pronto podrás ver tus favoritos aquí.</div>} />
                 <Route path="/profile" element={<ProfilePage />} />
-                
-                <Route path="/location-settings" element={<LocationSettingsPage />} />
-                <Route path="/boost" element={<BoostPage />} />
                 <Route path="/edit-profile" element={<EditProfilePage />} />
                 <Route path="/professional/:id" element={<ProfessionalProfilePage />} />
                 <Route path="/notifications" element={<NotificationsPage />} />
@@ -49,7 +41,6 @@ function App() {
             <UpdatePrompt />
             <NotificationPermissionPrompt />
           </BrowserRouter>
-        </ReviewProvider>
       </NotificationProvider>
       </LocationProvider>
     </AuthProvider>
