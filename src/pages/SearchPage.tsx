@@ -1,41 +1,31 @@
-import { Search, MapPin, Loader2, X, Tag } from 'lucide-react';
-import { useState, useMemo } from 'react';
+import { Search, MapPin, Loader2, X } from 'lucide-react';
+import { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useProfessionals } from '../hooks/useProfessionals';
 import { ProfessionalCard } from '../components/ProfessionalCard';
 import clsx from 'clsx';
 
-const CATEGORIES = ['Todos', 'Servicio', 'Técnico', 'Profesional', 'Oficio'];
+const CATEGORIES = ['Todos', 'Servicios', 'Técnicos', 'Profesionales', 'Oficios'];
 
 export function SearchPage() {
     const { professionals, isLoading } = useProfessionals();
     const [searchParams] = useSearchParams();
     const categoryParam = searchParams.get('category');
     
-    const initialCategory = categoryParam 
-        ? CATEGORIES.find(c => c.toLowerCase().includes(categoryParam.toLowerCase())) || 'Todos'
-        : 'Todos';
+    // Map the simple IDs (servicio, tecnico) to the plural labels
+    const getInitialCategory = () => {
+        if (!categoryParam) return 'Todos';
+        if (categoryParam === 'servicio') return 'Servicios';
+        if (categoryParam === 'tecnico') return 'Técnicos';
+        if (categoryParam === 'profesional') return 'Profesionales';
+        if (categoryParam === 'oficio') return 'Oficios';
+        return 'Todos';
+    };
+
+    const initialCategory = getInitialCategory();
 
     const [searchTerm, setSearchTerm] = useState('');
     const [activeCategory, setActiveCategory] = useState(initialCategory);
-    const [selectedTags, setSelectedTags] = useState<string[]>([]);
-
-    // Collect all unique tags from professionals' skills
-    const availableTags = useMemo(() => {
-        const tagSet = new Set<string>();
-        professionals.forEach(pro => {
-            if (pro.skills) {
-                pro.skills.forEach(skill => tagSet.add(skill));
-            }
-        });
-        return Array.from(tagSet).sort();
-    }, [professionals]);
-
-    const toggleTag = (tag: string) => {
-        setSelectedTags(prev => 
-            prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]
-        );
-    };
 
     const filteredPros = professionals.filter(pro => {
         const matchesSearch = pro.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -45,17 +35,13 @@ export function SearchPage() {
         let matchesCategory = true;
         if (activeCategory !== 'Todos') {
             const trade = pro.trade.toLowerCase();
-            if (activeCategory === 'Servicio') matchesCategory = ['jardinero', 'limpieza', 'niñera', 'flete'].some(t => trade.includes(t));
-            else if (activeCategory === 'Técnico') matchesCategory = ['aire', 'pc', 'celular', 'electrodomésticos'].some(t => trade.includes(t));
-            else if (activeCategory === 'Profesional') matchesCategory = ['abogado', 'contador', 'arquitecto', 'fotógrafo'].some(t => trade.includes(t));
-            else if (activeCategory === 'Oficio') matchesCategory = ['albañil', 'electricista', 'gasista', 'plomero', 'carpintero'].some(t => trade.includes(t));
+            if (activeCategory === 'Servicios') matchesCategory = ['jardinero', 'limpieza', 'niñera', 'flete'].some(t => trade.includes(t));
+            else if (activeCategory === 'Técnicos') matchesCategory = ['aire', 'pc', 'celular', 'electrodomésticos'].some(t => trade.includes(t));
+            else if (activeCategory === 'Profesionales') matchesCategory = ['abogado', 'contador', 'arquitecto', 'fotógrafo'].some(t => trade.includes(t));
+            else if (activeCategory === 'Oficios') matchesCategory = ['albañil', 'electricista', 'gasista', 'plomero', 'carpintero'].some(t => trade.includes(t));
         }
 
-        // Tag filter: professional must have ALL selected tags
-        const matchesTags = selectedTags.length === 0 || 
-            selectedTags.every(tag => pro.skills && pro.skills.includes(tag));
-
-        return matchesSearch && matchesCategory && matchesTags;
+        return matchesSearch && matchesCategory;
     });
 
     return (
@@ -87,8 +73,16 @@ export function SearchPage() {
                             placeholder="Buscar por nombre, oficio o actividad..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full bg-white pl-10 pr-4 py-3 rounded-xl border border-slate-200 outline-none focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 text-slate-800 placeholder:text-slate-400 text-sm font-medium transition-all"
+                            className="w-full bg-white pl-10 pr-10 py-3 rounded-xl border border-slate-200 outline-none focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 text-slate-800 placeholder:text-slate-400 text-sm font-medium transition-all"
                         />
+                        {searchTerm && (
+                            <button 
+                                onClick={() => setSearchTerm('')}
+                                className="absolute inset-y-0 right-3 flex items-center text-slate-400 hover:text-slate-600"
+                            >
+                                <X size={16} />
+                            </button>
+                        )}
                     </div>
                 </div>
 
@@ -109,41 +103,6 @@ export function SearchPage() {
                         </button>
                     ))}
                 </div>
-
-                {/* Tags Filter Row */}
-                {availableTags.length > 0 && (
-                    <div className="mt-3">
-                        <div className="flex items-center gap-2 mb-2">
-                            <Tag size={14} className="text-slate-400" />
-                            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Filtrar por actividad</span>
-                            {selectedTags.length > 0 && (
-                                <button 
-                                    onClick={() => setSelectedTags([])} 
-                                    className="ml-auto text-[11px] text-emerald-500 font-bold"
-                                >
-                                    Limpiar
-                                </button>
-                            )}
-                        </div>
-                        <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide -mx-4 px-4">
-                            {availableTags.map(tag => (
-                                <button
-                                    key={tag}
-                                    onClick={() => toggleTag(tag)}
-                                    className={clsx(
-                                        "whitespace-nowrap px-3 py-1 rounded-lg text-[11px] font-bold border transition-all flex items-center gap-1",
-                                        selectedTags.includes(tag)
-                                            ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                                            : "bg-white text-slate-500 border-slate-200 hover:bg-slate-50"
-                                    )}
-                                >
-                                    {selectedTags.includes(tag) && <X size={10} />}
-                                    {tag}
-                                </button>
-                            ))}
-                        </div>
-                    </div>
-                )}
             </div>
 
             {/* Results List */}
@@ -154,33 +113,21 @@ export function SearchPage() {
                 </div>
             ) : (
                 <div className="px-4 space-y-4">
-                    {/* Active filters summary */}
-                    {selectedTags.length > 0 && (
-                        <div className="flex items-center gap-2 flex-wrap">
-                            <span className="text-xs text-slate-400">Filtrando por:</span>
-                            {selectedTags.map(tag => (
-                                <span key={tag} className="bg-emerald-50 text-emerald-700 text-[10px] font-bold px-2 py-0.5 rounded-md border border-emerald-100 flex items-center gap-1">
-                                    {tag}
-                                    <button onClick={() => toggleTag(tag)}><X size={8} /></button>
-                                </span>
+                    {filteredPros.length > 0 ? (
+                        <>
+                            {filteredPros.map(pro => (
+                                <ProfessionalCard key={pro.id} professional={pro} />
                             ))}
-                        </div>
-                    )}
-
-                    {filteredPros.map(pro => (
-                        <ProfessionalCard key={pro.id} professional={pro} />
-                    ))}
-                    {filteredPros.length === 0 && (
+                        </>
+                    ) : (
                         <div className="text-center py-12">
-                            <p className="text-slate-500 font-medium">No se encontraron resultados para esta búsqueda.</p>
-                            {selectedTags.length > 0 && (
-                                <button 
-                                    onClick={() => setSelectedTags([])} 
-                                    className="mt-3 text-emerald-500 font-bold text-sm"
-                                >
-                                    Limpiar filtros de actividad
-                                </button>
-                            )}
+                            <p className="text-slate-500 font-medium mb-2">No se encontraron resultados para esta búsqueda.</p>
+                            <button 
+                                onClick={() => setSearchTerm('')} 
+                                className="text-emerald-500 font-bold text-sm"
+                            >
+                                Limpiar búsqueda
+                            </button>
                         </div>
                     )}
                 </div>
