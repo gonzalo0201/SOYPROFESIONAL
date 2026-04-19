@@ -174,13 +174,28 @@ export function ProfilePage() {
                 <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
                     {menuItems.map((item, index) => {
                         const Icon = item.icon;
-                        const Wrapper = item.path ? Link : 'div';
-                        const props = item.path ? { to: item.path } : {};
-
+                        if (item.path) {
+                            return (
+                                <Link
+                                    key={item.label}
+                                    to={item.path}
+                                    className={`w-full flex items-center p-4 hover:bg-slate-50 transition-colors cursor-pointer ${index !== menuItems.length - 1 ? 'border-b border-slate-50' : ''}`}
+                                >
+                                    <div className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-600 mr-4">
+                                        <Icon size={20} />
+                                    </div>
+                                    <div className="flex-1 text-left">
+                                        <h3 className="font-semibold text-slate-900 text-sm">{item.label}</h3>
+                                        <p className="text-xs text-slate-500">{item.desc}</p>
+                                    </div>
+                                    <ChevronRight size={18} className="text-slate-300" />
+                                </Link>
+                            );
+                        }
+                        
                         return (
-                            <Wrapper
+                            <div
                                 key={item.label}
-                                {...(props as any)}
                                 className={`w-full flex items-center p-4 hover:bg-slate-50 transition-colors cursor-pointer ${index !== menuItems.length - 1 ? 'border-b border-slate-50' : ''}`}
                             >
                                 <div className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-600 mr-4">
@@ -191,7 +206,7 @@ export function ProfilePage() {
                                     <p className="text-xs text-slate-500">{item.desc}</p>
                                 </div>
                                 <ChevronRight size={18} className="text-slate-300" />
-                            </Wrapper>
+                            </div>
                         );
                     })}
                 </div>

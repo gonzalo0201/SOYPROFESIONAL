@@ -1,4 +1,4 @@
-import { Star, CheckCircle, MessageCircle, Phone, MapPin, Flame } from 'lucide-react';
+import { Star, CheckCircle, MapPin, Flame, MessageCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import clsx from 'clsx';
 import type { ProfessionalDisplay } from '../hooks/useProfessionals';
@@ -11,10 +11,13 @@ export function ProfessionalCard({ professional: pro }: ProfessionalCardProps) {
     const navigate = useNavigate();
 
     return (
-        <div className={clsx(
-            "p-5 rounded-2xl shadow-sm border relative overflow-hidden transition-all",
-            pro.isBoosted ? "bg-[#FFF8E1] border-amber-200" : "bg-white border-slate-200"
-        )}>
+        <div 
+            onClick={() => navigate(`/professional/${pro.id}`)}
+            className={clsx(
+                "p-5 rounded-2xl shadow-sm border relative overflow-hidden transition-all cursor-pointer hover:shadow-md",
+                pro.isBoosted ? "bg-[#FFF8E1] border-amber-200" : "bg-white border-slate-100"
+            )}
+        >
             {pro.isBoosted && (
                 <div className="absolute top-0 right-0 bg-gradient-to-bl from-amber-100 to-white pl-3 pb-3 pt-1 pr-1 rounded-bl-3xl">
                     <div className="flex items-center gap-1 bg-amber-100/50 px-2 py-0.5 rounded-full">
@@ -23,12 +26,6 @@ export function ProfessionalCard({ professional: pro }: ProfessionalCardProps) {
                     </div>
                 </div>
             )}
-
-            {/* Clickable area → Profile */}
-            <div
-                className="cursor-pointer active:opacity-80 transition-opacity"
-                onClick={() => navigate(`/professional/${pro.id}`)}
-            >
 
             <div className="flex gap-4 mb-3">
                 {/* Image & Status */}
@@ -39,7 +36,7 @@ export function ProfessionalCard({ professional: pro }: ProfessionalCardProps) {
                     )} />
                     <div className={clsx(
                         "absolute -bottom-1 -right-1 w-4 h-4 border-2 border-white rounded-full",
-                        pro.isBoosted ? "bg-amber-500" : "bg-emerald-500"
+                        pro.status === 'Disponible' ? "bg-emerald-500" : "bg-amber-500" // Fallback fallback to emerald
                     )}></div>
                 </div>
 
@@ -60,44 +57,36 @@ export function ProfessionalCard({ professional: pro }: ProfessionalCardProps) {
                         <span className="font-bold text-slate-900">{pro.rating}</span>
                         <span className="text-slate-500">({pro.reviews})</span>
                         <span className="text-slate-300 mx-1">•</span>
-                        <div className="flex items-center text-slate-400">
+                        <div className="flex items-center text-slate-400 text-xs">
                             <MapPin size={12} className="mr-0.5" />
-                            <span>2.3 km</span>
+                            <span>Bahía Blanca</span>
                         </div>
                     </div>
                 </div>
             </div>
 
             {/* Description */}
-            <p className="text-slate-600 text-sm leading-relaxed mb-4">
+            <p className="text-slate-600 text-sm leading-relaxed mb-4 line-clamp-2">
                 {pro.description}
             </p>
 
             {/* Skills/Tags */}
-            <div className="flex flex-wrap gap-2 mb-5">
-                {pro.skills && pro.skills.map(skill => (
-                    <span key={skill} className="bg-emerald-50 text-emerald-700 text-xs font-semibold px-2.5 py-1 rounded-md">
+            <div className="flex flex-wrap gap-2 mb-4">
+                {pro.skills && pro.skills.slice(0, 4).map(skill => (
+                    <span key={skill} className="bg-emerald-50 text-emerald-700 text-[10px] font-bold px-2 py-1 rounded-md">
                         {skill}
                     </span>
                 ))}
             </div>
-            </div>
 
-            {/* Action Buttons */}
-            <div className="flex items-center gap-3">
-                <button
-                    onClick={(e) => { e.stopPropagation(); navigate(`/chat/new/${pro.id}`); }}
-                    className="flex-1 bg-slate-800 text-white py-2.5 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 hover:bg-slate-700 active:scale-95 transition-all"
-                >
-                    <MessageCircle size={18} />
-                    Mensaje
-                </button>
-                <button className="flex-1 bg-emerald-500 text-white py-2.5 rounded-xl font-semibold text-sm hover:bg-emerald-600 active:scale-95 transition-all shadow-lg shadow-emerald-500/20">
-                    Solicitar servicio
-                </button>
-                <button className="p-2.5 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 active:scale-95 transition-colors">
-                    <Phone size={20} />
-                </button>
+            {/* View Profile Action */}
+            <div className="pt-3 border-t border-slate-100/80 flex justify-between items-center">
+                <span className="text-emerald-600 font-bold text-xs uppercase tracking-wide">
+                    Ver Perfil Completo
+                </span>
+                <div className="bg-emerald-50 p-2 rounded-full text-emerald-500">
+                    <MessageCircle size={16} />
+                </div>
             </div>
         </div>
     );

@@ -66,7 +66,7 @@ export function BeforeAfterSlider({
             onPointerDown={handlePointerDown}
             onPointerMove={handlePointerMove}
             onPointerUp={handlePointerUp}
-            style={{ touchAction: 'pan-y' }}
+            style={{ touchAction: 'pan-y', containerType: 'inline-size' }}
         >
             {/* After image (background, full) */}
             <img
@@ -85,7 +85,7 @@ export function BeforeAfterSlider({
                     src={beforeImage}
                     alt="Antes"
                     className="absolute inset-0 w-full h-full object-cover"
-                    style={{ width: `${containerRef.current ? containerRef.current.offsetWidth : 100}px`, maxWidth: 'none' }}
+                    style={{ width: '100cqw', maxWidth: 'none' }}
                     draggable={false}
                 />
             </div>

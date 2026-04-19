@@ -17,6 +17,7 @@ export function InstallPrompt() {
     useEffect(() => {
         // Check if already installed
         if (window.matchMedia('(display-mode: standalone)').matches) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setIsInstalled(true);
             return;
         }
@@ -32,6 +33,7 @@ export function InstallPrompt() {
         // Detect iOS
         const userAgent = window.navigator.userAgent.toLowerCase();
         const isIOSDevice = /iphone|ipad|ipod/.test(userAgent);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const isInStandalone = ('standalone' in window.navigator) && (window.navigator as any).standalone;
         setIsIOS(isIOSDevice && !isInStandalone);
 

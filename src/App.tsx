@@ -1,17 +1,12 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { Layout } from './components/layout/Layout';
-import { MapPage } from './pages/MapPage';
+import { HomePage } from './pages/HomePage';
 import { PostPage } from './pages/PostPage';
 import { ProfilePage } from './pages/ProfilePage';
-import { MessagesPage } from './pages/MessagesPage';
 import { LocationSettingsPage } from './pages/LocationSettingsPage';
-import { RelaysPage } from './pages/RelaysPage';
 import { SearchPage } from './pages/SearchPage';
 import { BoostPage } from './pages/BoostPage';
-import { FullMapPage } from './pages/FullMapPage';
 import { EditProfilePage } from './pages/EditProfilePage';
-import { ChatPage } from './pages/ChatPage';
-import { NewChatPage } from './pages/NewChatPage';
 import { ProfessionalProfilePage } from './pages/ProfessionalProfilePage';
 import { LoginPage } from './pages/LoginPage';
 import { OnboardingPage } from './pages/OnboardingPage';
@@ -24,7 +19,6 @@ import { InstallPrompt } from './components/InstallPrompt';
 import { UpdatePrompt } from './components/UpdatePrompt';
 import { NotificationPermissionPrompt } from './components/NotificationPermissionPrompt';
 
-
 function App() {
   return (
     <AuthProvider>
@@ -34,21 +28,20 @@ function App() {
           <BrowserRouter>
             <Routes>
               <Route element={<Layout />}>
-                <Route path="/" element={<MapPage />} />
+                <Route path="/" element={<HomePage />} />
                 <Route path="/search" element={<SearchPage />} />
                 <Route path="/post" element={<PostPage />} />
-                <Route path="/messages" element={<MessagesPage />} />
+                {/* Temporary placeholder for favorites */}
+                <Route path="/favorites" element={<div className="flex h-full items-center justify-center p-8 text-center text-slate-500 font-medium">Pronto podrás ver tus favoritos aquí.</div>} />
                 <Route path="/profile" element={<ProfilePage />} />
+                
                 <Route path="/location-settings" element={<LocationSettingsPage />} />
-                <Route path="/relays" element={<RelaysPage />} />
                 <Route path="/boost" element={<BoostPage />} />
-                <Route path="/map-full" element={<FullMapPage />} />
                 <Route path="/edit-profile" element={<EditProfilePage />} />
                 <Route path="/professional/:id" element={<ProfessionalProfilePage />} />
                 <Route path="/notifications" element={<NotificationsPage />} />
               </Route>
-              <Route path="/chat/new/:professionalId" element={<NewChatPage />} />
-              <Route path="/chat/:chatId" element={<ChatPage />} />
+              
               <Route path="/login" element={<LoginPage />} />
               <Route path="/onboarding" element={<OnboardingPage />} />
             </Routes>

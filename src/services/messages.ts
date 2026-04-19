@@ -31,6 +31,7 @@ export async function getConversations(userId: string): Promise<ConversationDisp
     return [];
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return (data || []).map((conv: any) => {
     const isParticipant1 = conv.participant_1 === userId;
     const otherProfile = isParticipant1 ? conv.participant2_profile : conv.participant1_profile;
@@ -137,6 +138,7 @@ export async function getOrCreateConversation(
 // Real-time subscription for new messages
 export function subscribeToMessages(
   conversationId: string,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onNewMessage: (message: any) => void
 ) {
   return supabase

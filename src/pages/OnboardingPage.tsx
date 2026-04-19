@@ -32,6 +32,18 @@ export function OnboardingPage() {
     // Step 5 confetti
     const [showConfetti, setShowConfetti] = useState(false);
 
+    // Generate confetti pieces with initial state function to avoid impure render
+    const [confettiPieces] = useState<React.CSSProperties[]>(() => {
+        return Array.from({ length: 50 }).map(() => ({
+            left: `${Math.random() * 100}%`,
+            animationDelay: `${Math.random() * 2}s`,
+            animationDuration: `${2 + Math.random() * 3}s`,
+            backgroundColor: ['#10b981', '#f59e0b', '#3b82f6', '#ef4444', '#8b5cf6', '#ec4899'][Math.floor(Math.random() * 6)],
+            width: `${6 + Math.random() * 8}px`,
+            height: `${6 + Math.random() * 8}px`,
+        }));
+    });
+
     // Check if onboarding already completed
     useEffect(() => {
         const completed = localStorage.getItem('onboarding_completed');
@@ -114,18 +126,11 @@ export function OnboardingPage() {
             {/* Confetti overlay */}
             {showConfetti && (
                 <div className="absolute inset-0 pointer-events-none z-50 overflow-hidden">
-                    {Array.from({ length: 50 }).map((_, i) => (
+                    {confettiPieces.map((piece, i) => (
                         <div
                             key={i}
                             className="onb-confetti-piece"
-                            style={{
-                                left: `${Math.random() * 100}%`,
-                                animationDelay: `${Math.random() * 2}s`,
-                                animationDuration: `${2 + Math.random() * 3}s`,
-                                backgroundColor: ['#10b981', '#f59e0b', '#3b82f6', '#ef4444', '#8b5cf6', '#ec4899'][Math.floor(Math.random() * 6)],
-                                width: `${6 + Math.random() * 8}px`,
-                                height: `${6 + Math.random() * 8}px`,
-                            }}
+                            style={piece}
                         />
                     ))}
                 </div>

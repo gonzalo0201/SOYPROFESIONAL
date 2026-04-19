@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import { createContext, useContext, useState, useEffect, useCallback, useRef, type ReactNode } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from './AuthContext';
@@ -47,31 +48,25 @@ const TEST_NOTIFICATIONS: Record<string, { title: string; body: string; tag: str
     },
 };
 
+interface CustomWindow extends Window {
+    __setActiveConversation?: (id: string | null) => void;
+}
+
 export function NotificationProvider({ children }: { children: ReactNode }) {
     const { user } = useAuth();
-    const [permission, setPermission] = useState<PermissionStatus>('default');
-    const [isSupported, setIsSupported] = useState(false);
-    const [isPushEnabled, setIsPushEnabled] = useState(true);
+    const [isSupported] = useState(() => 'Notification' in window && 'serviceWorker' in navigator);
+    const [permission, setPermission] = useState<PermissionStatus>(() => {
+        const supported = 'Notification' in window && 'serviceWorker' in navigator;
+        return supported ? (Notification.permission as PermissionStatus) : 'unsupported';
+    });
+    const [isPushEnabled, setIsPushEnabled] = useState(() => {
+        const saved = localStorage.getItem('sp_push_enabled');
+        return saved !== null ? saved === 'true' : true;
+    });
     const [showPrompt, setShowPrompt] = useState(false);
     const [unreadTotal, setUnreadTotal] = useState(0);
     const activeConversationRef = useRef<string | null>(null);
     const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
-
-    useEffect(() => {
-        // Check if notifications API is supported
-        const supported = 'Notification' in window && 'serviceWorker' in navigator;
-        setIsSupported(supported);
-
-        if (supported) {
-            setPermission(Notification.permission as PermissionStatus);
-
-            // Load push preference
-            const saved = localStorage.getItem('sp_push_enabled');
-            if (saved !== null) setIsPushEnabled(saved === 'true');
-        } else {
-            setPermission('unsupported');
-        }
-    }, []);
 
     // Show the permission prompt after a delay if user hasn't decided yet
     useEffect(() => {
@@ -114,6 +109,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     // Fetch initial unread count
     useEffect(() => {
         if (!user) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setUnreadTotal(0);
             return;
         }
@@ -278,11 +274,11 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
 
     // Make the active conversation setter available globally
     useEffect(() => {
-        (window as any).__setActiveConversation = (id: string | null) => {
+        (window as unknown as CustomWindow).__setActiveConversation = (id: string | null) => {
             activeConversationRef.current = id;
         };
         return () => {
-            delete (window as any).__setActiveConversation;
+            delete (window as unknown as CustomWindow).__setActiveConversation;
         };
     }, []);
 
@@ -316,7 +312,8 @@ export function useNotifications() {
  * This prevents sending notifications for messages the user is already viewing
  */
 export function setActiveConversation(conversationId: string | null) {
-    if ((window as any).__setActiveConversation) {
-        (window as any).__setActiveConversation(conversationId);
+    const defaultWindow = window as unknown as CustomWindow;
+    if (defaultWindow.__setActiveConversation) {
+        defaultWindow.__setActiveConversation(conversationId);
     }
 }
