@@ -1,103 +1,109 @@
-import { Search, MapPin, Briefcase, Wrench, GraduationCap, HardHat } from 'lucide-react';
+import { Search, Briefcase, Wrench, GraduationCap, HardHat, Flame } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { ProfessionalCard } from '../components/ProfessionalCard';
 import { useProfessionals } from '../hooks/useProfessionals';
 
 export const MAIN_CATEGORIES = [
-    { id: 'servicio', label: 'Servicio', icon: Briefcase, color: 'bg-emerald-500' },
-    { id: 'tecnico', label: 'Técnico', icon: Wrench, color: 'bg-teal-600' },
-    { id: 'profesional', label: 'Profesional', icon: GraduationCap, color: 'bg-cyan-600' },
-    { id: 'oficio', label: 'Oficio', icon: HardHat, color: 'bg-emerald-700' },
+    { id: 'servicio', label: 'Servicios', icon: Briefcase, color: 'bg-emerald-500' },
+    { id: 'tecnico', label: 'Técnicos', icon: Wrench, color: 'bg-teal-600' },
+    { id: 'profesional', label: 'Profesionales', icon: GraduationCap, color: 'bg-cyan-600' },
+    { id: 'oficio', label: 'Oficios', icon: HardHat, color: 'bg-emerald-700' },
 ];
 
 export function HomePage() {
     const navigate = useNavigate();
     const { professionals } = useProfessionals(); 
     
-    // Random select 4 professionals as "Recientes" for the demo
-    const recents = professionals.slice(0, 4);
+    // Solo mostrar los destacados en el inicio
+    const boostedPros = professionals.filter(pro => pro.isBoosted).slice(0, 4);
 
     return (
-        <div className="pb-24 pt-4 px-4 bg-slate-50 min-h-screen">
-            {/* Header */}
-            <div className="flex items-center gap-2 mb-6">
-                <div className="w-8 h-8 bg-emerald-500 rounded-lg flex items-center justify-center font-black text-white text-lg">
-                    S
+        <div className="pb-24 bg-slate-50 min-h-screen">
+            {/* Hero Section */}
+            <div className="bg-slate-900 text-white pt-8 pb-12 px-4 rounded-b-[2.5rem] shadow-lg relative overflow-hidden">
+                {/* Background Pattern */}
+                <div className="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none">
+                    <div className="absolute -top-20 -right-20 w-64 h-64 bg-emerald-500 rounded-full blur-3xl"></div>
+                    <div className="absolute top-20 -left-10 w-40 h-40 bg-teal-500 rounded-full blur-3xl"></div>
                 </div>
-                <h1 className="text-xl font-black text-slate-900">
-                    Soy<span className="text-emerald-500">Profesional</span>
-                </h1>
-            </div>
 
-            <p className="text-slate-500 text-sm mb-4">Encontrá lo que buscás en tu localidad</p>
-
-            {/* Search Inputs */}
-            <div className="space-y-3 mb-8">
-                {/* Location Input */}
-                <div className="relative">
-                    <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
-                        <MapPin className="text-emerald-500" size={18} />
+                <div className="relative z-10">
+                    <div className="flex items-center gap-2 mb-8">
+                        <div className="w-8 h-8 bg-emerald-500 rounded-lg flex items-center justify-center font-black text-white text-lg">
+                            S
+                        </div>
+                        <h1 className="text-xl font-black text-white">
+                            Soy<span className="text-emerald-400">Profesional</span>
+                        </h1>
                     </div>
-                    <input
-                        type="text"
-                        placeholder="Ej: San Martín de los Andes..."
-                        className="w-full bg-white pl-10 pr-4 py-3.5 rounded-xl border border-slate-200 outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/20 text-slate-800 placeholder:text-slate-400 transition-all font-medium text-sm"
-                        onClick={() => navigate('/search')}
-                        readOnly
-                    />
-                </div>
-                
-                {/* Text Search Input */}
-                <div className="relative">
-                    <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
-                        <Search className="text-slate-400" size={18} />
-                    </div>
-                    <input
-                        type="text"
-                        placeholder="Buscar albañil, electricista..."
-                        className="w-full bg-white pl-10 pr-4 py-3.5 rounded-xl border border-slate-200 outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/20 text-slate-800 placeholder:text-slate-400 transition-all font-medium text-sm"
-                        onClick={() => navigate('/search')}
-                        readOnly
-                    />
-                </div>
-            </div>
 
-            {/* Categories */}
-            <div className="mb-8">
-                <h2 className="text-lg font-bold text-slate-800 mb-4">Categorías</h2>
-                <div className="grid grid-cols-2 gap-4">
-                    {MAIN_CATEGORIES.map((cat) => (
-                        <button
-                            key={cat.id}
-                            onClick={() => navigate(`/search?category=${cat.id}`)}
-                            className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm hover:shadow-md hover:border-emerald-200 transition-all flex flex-col items-center justify-center gap-3 group"
-                        >
-                            <div className={`${cat.color} w-14 h-14 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-black/5 group-active:scale-95 transition-transform`}>
-                                <cat.icon size={26} strokeWidth={2.5} />
-                            </div>
-                            <span className="font-bold text-slate-700 text-sm">{cat.label}</span>
-                        </button>
-                    ))}
-                </div>
-            </div>
+                    <h2 className="text-3xl font-black mb-3 leading-tight">
+                        Encontrá al <br/>
+                        <span className="text-emerald-400">experto ideal</span>
+                    </h2>
+                    <p className="text-slate-400 text-sm mb-6 max-w-[280px]">
+                        Conectamos a clientes con los mejores profesionales y oficios de la ciudad.
+                    </p>
 
-            {/* Recents */}
-            <div>
-                <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-lg font-bold text-slate-800">Recientes</h2>
+                    {/* Fake Search Bar to jump to Search */}
                     <button 
-                        onClick={() => navigate('/search')} 
-                        className="text-emerald-500 font-semibold text-sm hover:text-emerald-600 transition-colors"
+                        onClick={() => navigate('/search')}
+                        className="w-full bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 p-4 rounded-2xl flex items-center gap-3 transition-colors text-left"
                     >
-                        Ver todos →
+                        <Search className="text-emerald-400" size={24} />
+                        <div>
+                            <p className="font-bold text-white text-sm">¿Qué estás buscando?</p>
+                            <p className="text-xs text-slate-400">Plomero, electricista, flete...</p>
+                        </div>
                     </button>
                 </div>
-                
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {recents.map((pro) => (
-                        <ProfessionalCard key={pro.id} professional={pro} />
-                    ))}
+            </div>
+
+            <div className="px-4 -mt-6 relative z-20">
+                {/* Categories */}
+                <div className="bg-white rounded-3xl p-5 shadow-sm border border-slate-100 mb-8">
+                    <h3 className="font-bold text-slate-800 mb-4 text-sm uppercase tracking-wider">Explorar categorías</h3>
+                    <div className="grid grid-cols-4 gap-3">
+                        {MAIN_CATEGORIES.map((cat) => (
+                            <button
+                                key={cat.id}
+                                onClick={() => navigate(`/search?category=${cat.id}`)}
+                                className="flex flex-col items-center gap-2 group outline-none"
+                            >
+                                <div className={`${cat.color} w-14 h-14 rounded-2xl flex items-center justify-center text-white shadow-md shadow-emerald-900/10 group-active:scale-95 transition-all`}>
+                                    <cat.icon size={24} strokeWidth={2} />
+                                </div>
+                                <span className="font-bold text-slate-600 text-[10px] uppercase tracking-wide text-center">{cat.label}</span>
+                            </button>
+                        ))}
+                    </div>
                 </div>
+
+                {/* Destacados */}
+                {boostedPros.length > 0 && (
+                    <div>
+                        <div className="flex items-center justify-between mb-4 px-1">
+                            <div className="flex items-center gap-2">
+                                <div className="bg-emerald-100 p-1.5 rounded-lg">
+                                    <Flame size={16} className="text-emerald-600 fill-emerald-600" />
+                                </div>
+                                <h2 className="text-lg font-bold text-slate-800">Destacados</h2>
+                            </div>
+                            <button 
+                                onClick={() => navigate('/search')} 
+                                className="text-emerald-600 font-bold text-xs uppercase tracking-wide hover:text-emerald-700 transition-colors bg-emerald-50 px-3 py-1.5 rounded-full"
+                            >
+                                Ver todos
+                            </button>
+                        </div>
+                        
+                        <div className="space-y-4">
+                            {boostedPros.map((pro) => (
+                                <ProfessionalCard key={pro.id} professional={pro} />
+                            ))}
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     );
