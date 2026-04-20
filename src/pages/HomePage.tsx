@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { useState, useMemo } from 'react';
 import { ProfessionalCard } from '../components/ProfessionalCard';
 import { useProfessionals } from '../hooks/useProfessionals';
-import type { ProfessionalDisplay } from '../services/professionals';
 import clsx from 'clsx';
 
 export const MAIN_CATEGORIES = [
@@ -13,28 +12,7 @@ export const MAIN_CATEGORIES = [
     { id: 'oficio', label: 'Oficios', icon: HardHat, color: 'bg-emerald-700' },
 ];
 
-// Rich mock data to ensure the homepage looks completely full of options
-const MOCK_EXAMPLES: ProfessionalDisplay[] = [
-    // Servicios
-    { id: 'm1', name: 'Laura Martínez', trade: 'Niñera', rating: 4.9, reviews: 12, lat: 0, lng: 0, image: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&h=150&fit=crop', isVerified: true, isEarlyAdopter: false, isBoosted: false, status: 'Disponible', description: 'Cuidado de niños con referencias', skills: ['Niñera', 'Cuidado infantil'] },
-    { id: 'm2', name: 'Transportes Gómez', trade: 'Flete', rating: 4.8, reviews: 34, lat: 0, lng: 0, image: 'https://images.unsplash.com/photo-1506869440621-3eef57c0a4e7?w=150&h=150&fit=crop', isVerified: true, isEarlyAdopter: true, isBoosted: true, status: 'Disponible', description: 'Mudanzas y fletes a todo el país', skills: ['Flete', 'Mudanza', 'Logística'] },
-    { id: 'm3', name: 'Limpieza Total', trade: 'Limpieza', rating: 4.7, reviews: 56, lat: 0, lng: 0, image: 'https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=150&h=150&fit=crop', isVerified: false, isEarlyAdopter: false, isBoosted: false, status: 'Disponible', description: 'Limpieza profunda de hogares y oficinas', skills: ['Limpieza general', 'Terminación de obra'] },
-    
-    // Técnicos
-    { id: 'm4', name: 'TechFix Arreglos', trade: 'Técnico PC', rating: 5.0, reviews: 89, lat: 0, lng: 0, image: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=150&h=150&fit=crop', isVerified: true, isEarlyAdopter: false, isBoosted: true, status: 'Disponible', description: 'Arreglo de notebooks y PC de escritorio', skills: ['PC', 'Hardware', 'Redes'] },
-    { id: 'm5', name: 'Diego Climatización', trade: 'Aire Acondicionado', rating: 4.6, reviews: 23, lat: 0, lng: 0, image: 'https://images.unsplash.com/photo-1534398079543-7ae6d016b8be?w=150&h=150&fit=crop', isVerified: true, isEarlyAdopter: false, isBoosted: false, status: 'Ocupado', description: 'Instalación y service de aires', skills: ['Instalación', 'Aire Acondicionado'] },
-    { id: 'm6', name: 'ReparaCell', trade: 'Técnico Celulares', rating: 4.5, reviews: 112, lat: 0, lng: 0, image: 'https://images.unsplash.com/photo-1581293370966-24ba0da9d8c4?w=150&h=150&fit=crop', isVerified: false, isEarlyAdopter: true, isBoosted: false, status: 'Disponible', description: 'Cambio de módulos en el acto', skills: ['Celulares', 'Pantallas', 'Baterías'] },
 
-    // Profesionales
-    { id: 'm7', name: 'Estudio Jurídico López', trade: 'Abogado', rating: 4.9, reviews: 45, lat: 0, lng: 0, image: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=150&h=150&fit=crop', isVerified: true, isEarlyAdopter: true, isBoosted: true, status: 'Disponible', description: 'Derecho laboral y familia', skills: ['Abogado', 'Laboral', 'Familia'] },
-    { id: 'm8', name: 'Arq. Mariana Silva', trade: 'Arquitecta', rating: 5.0, reviews: 18, lat: 0, lng: 0, image: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&h=150&fit=crop', isVerified: true, isEarlyAdopter: false, isBoosted: false, status: 'Disponible', description: 'Diseño de planos y dirección de obra', skills: ['Arquitectura', 'Planos', 'Diseño'] },
-    { id: 'm9', name: 'Contador Pérez', trade: 'Contador', rating: 4.8, reviews: 67, lat: 0, lng: 0, image: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=150&h=150&fit=crop', isVerified: false, isEarlyAdopter: false, isBoosted: false, status: 'Disponible', description: 'Monotributo, ganancias y liquidaciones', skills: ['Contador', 'Impuestos', 'AFIP'] },
-
-    // Oficios
-    { id: 'm10', name: 'Carlos Gasista', trade: 'Gasista Matriculado', rating: 4.9, reviews: 156, lat: 0, lng: 0, image: 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?w=150&h=150&fit=crop', isVerified: true, isEarlyAdopter: true, isBoosted: true, status: 'Disponible', description: 'Planos, pruebas de hermeticidad', skills: ['Gasista', 'Matriculado', 'Estufas'] },
-    { id: 'm11', name: 'Maderas y Muebles', trade: 'Carpintero', rating: 4.7, reviews: 42, lat: 0, lng: 0, image: 'https://images.unsplash.com/photo-1610555356070-d1fb34aa2353?w=150&h=150&fit=crop', isVerified: false, isEarlyAdopter: false, isBoosted: false, status: 'Disponible', description: 'Muebles a medida y refacciones', skills: ['Carpintería', 'Muebles a medida', 'Madera'] },
-    { id: 'm12', name: 'Obras Rápidas s.a.', trade: 'Albañil', rating: 4.4, reviews: 88, lat: 0, lng: 0, image: 'https://images.unsplash.com/photo-1541888086225-ee5315a639bf?w=150&h=150&fit=crop', isVerified: true, isEarlyAdopter: false, isBoosted: false, status: 'Ocupado', description: 'Lozas, revoques, colocación de cerámicos', skills: ['Albañilería', 'Pintura', 'Cerámicos'] },
-];
 
 export function HomePage() {
     const navigate = useNavigate();
@@ -48,12 +26,8 @@ export function HomePage() {
 
     const { professionals } = useProfessionals(); 
     
-    // Merge real database professionals with the hardcoded mock examples so the screen is always full
     const allPros = useMemo(() => {
-        // Create a Set of existing IDs from DB to avoid duplicates if mocks share IDs
-        const dbIds = new Set(professionals.map(p => p.id));
-        const nonDuplicateMocks = MOCK_EXAMPLES.filter(m => !dbIds.has(m.id));
-        return [...professionals, ...nonDuplicateMocks];
+        return [...professionals];
     }, [professionals]);
 
     const handleSearch = (e: React.FormEvent) => {

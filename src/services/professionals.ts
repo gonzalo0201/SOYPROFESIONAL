@@ -107,6 +107,7 @@ export async function updateProfessionalProfile(
     status?: string;
     lat?: number;
     lng?: number;
+    is_boosted?: boolean;
   }
 ) {
   const { error } = await supabase
@@ -116,6 +117,20 @@ export async function updateProfessionalProfile(
 
   if (error) {
     console.error('Error updating professional:', error);
+    return { error: error.message };
+  }
+
+  return { error: null };
+}
+
+export async function setProfessionalBoosted(profileId: string) {
+  const { error } = await supabase
+    .from('professionals')
+    .update({ is_boosted: true })
+    .eq('profile_id', profileId);
+
+  if (error) {
+    console.error('Error boosting professional:', error);
     return { error: error.message };
   }
 

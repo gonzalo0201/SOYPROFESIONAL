@@ -1,13 +1,16 @@
 import { Link, useNavigate } from 'react-router-dom';
-import { User, ChevronRight, LogOut, Loader2, Bell, BellOff, HelpCircle, FileText, Info } from 'lucide-react';
+import { User, ChevronRight, LogOut, Loader2, Bell, BellOff, HelpCircle, FileText, Info, Zap } from 'lucide-react';
 import { useNotifications } from '../contexts/NotificationContext';
 import { useAuth } from '../contexts/AuthContext';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { setProfessionalBoosted } from '../services/professionals';
 
 export function ProfilePage() {
     const { permission, isSupported, isPushEnabled, togglePush, requestPermission } = useNotifications();
     const { user, profile, isLoading, signOut } = useAuth();
     const navigate = useNavigate();
+    const [isBoosting, setIsBoosting] = useState(false);
+    const [boostSuccess, setBoostSuccess] = useState(false);
 
     useEffect(() => {
         if (!isLoading && !user) {
@@ -26,6 +29,19 @@ export function ProfilePage() {
     const handleSignOut = async () => {
         await signOut();
         navigate('/login');
+    };
+
+    const handleBoost = async () => {
+        if (!user) return;
+        setIsBoosting(true);
+        const { error } = await setProfessionalBoosted(profile?.id || user.id);
+        setIsBoosting(false);
+        if (!error) {
+            setBoostSuccess(true);
+            setTimeout(() => setBoostSuccess(false), 3000);
+        } else {
+            alert('Error al impulsar perfil');
+        }
     };
 
     if (isLoading) {
@@ -74,6 +90,17 @@ export function ProfilePage() {
                         <User size={16} />
                         Editar perfil
                     </Link>
+
+                    {profile?.role === 'professional' && (
+                        <button
+                            onClick={handleBoost}
+                            disabled={isBoosting || boostSuccess}
+                            className="mt-2 w-full flex items-center justify-center gap-2 bg-slate-900 hover:bg-slate-800 disabled:bg-slate-700 text-emerald-400 py-2.5 rounded-xl text-sm font-bold transition-colors active:scale-[0.98]"
+                        >
+                            {isBoosting ? <Loader2 size={16} className="animate-spin" /> : <Zap size={16} />}
+                            {boostSuccess ? '¡Perfil Impulsado!' : 'Impulsar Perfil (Gratis x100)'}
+                        </button>
+                    )}
                 </div>
 
                 {/* Notifications Toggle */}
