@@ -4,6 +4,7 @@ import { useSearchParams } from 'react-router-dom';
 import { useProfessionals } from '../hooks/useProfessionals';
 import { ProfessionalCard } from '../components/ProfessionalCard';
 import clsx from 'clsx';
+import { useGeoref } from '../hooks/useGeoref';
 
 const CATEGORIES = ['Todos', 'Servicios', 'Técnicos', 'Profesionales', 'Oficios'];
 
@@ -28,6 +29,9 @@ export function SearchPage() {
     const [searchTerm, setSearchTerm] = useState(qParam);
     const [locationTerm, setLocationTerm] = useState(locParam);
     const [activeCategory, setActiveCategory] = useState(getInitialCategory());
+
+    const { localidades, isLoading: isLocLoading } = useGeoref(locationTerm);
+    const [showLocSuggestions, setShowLocSuggestions] = useState(false);
 
     // Update URL params when user clears inputs so it doesn't get stuck
     useEffect(() => {
@@ -71,7 +75,7 @@ export function SearchPage() {
 
                 <div className="space-y-3">
                     {/* Location Input */}
-                    <div className="relative">
+                    <div className="relative z-20">
                         <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
                             <MapPin className="text-emerald-500" size={18} />
                         </div>
@@ -79,16 +83,57 @@ export function SearchPage() {
                             type="text"
                             placeholder="Ej: Bahía Blanca, Neuquén, CABA..."
                             value={locationTerm}
-                            onChange={(e) => setLocationTerm(e.target.value)}
+                            onChange={(e) => {
+                                setLocationTerm(e.target.value);
+                                setShowLocSuggestions(true);
+                            }}
+                            onFocus={() => setShowLocSuggestions(true)}
+                            onBlur={() => {
+                                setTimeout(() => setShowLocSuggestions(false), 200);
+                            }}
                             className="w-full bg-white pl-10 pr-10 py-3 rounded-xl border border-slate-200 outline-none focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 text-slate-800 placeholder:text-slate-400 text-sm font-medium transition-all"
                         />
                         {locationTerm && (
                             <button 
-                                onClick={() => setLocationTerm('')}
+                                onClick={() => { setLocationTerm(''); setShowLocSuggestions(false); }}
                                 className="absolute inset-y-0 right-3 flex items-center text-slate-400 hover:text-slate-600"
                             >
                                 <X size={16} />
                             </button>
+                        )}
+
+                        {/* Suggestions Dropdown */}
+                        {showLocSuggestions && (locationTerm.length >= 3) && (
+                            <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-xl shadow-lg overflow-hidden max-h-60 overflow-y-auto">
+                                {isLocLoading ? (
+                                    <div className="flex items-center justify-center p-4">
+                                        <Loader2 size={16} className="text-emerald-500 animate-spin mr-2" />
+                                        <span className="text-sm text-slate-500">Buscando...</span>
+                                    </div>
+                                ) : localidades.length > 0 ? (
+                                    <ul>
+                                        {localidades.map((loc) => (
+                                            <li key={loc.id}>
+                                                <button
+                                                    className="w-full text-left px-4 py-3 hover:bg-slate-50 flex flex-col border-b border-slate-50 last:border-0 transition-colors"
+                                                    onClick={(e) => {
+                                                        e.preventDefault();
+                                                        setLocationTerm(`${loc.nombre}, ${loc.provincia.nombre}`);
+                                                        setShowLocSuggestions(false);
+                                                    }}
+                                                >
+                                                    <span className="font-medium text-slate-800 text-sm">{loc.nombre}</span>
+                                                    <span className="text-xs text-slate-500">{loc.provincia.nombre}</span>
+                                                </button>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                ) : (
+                                    <div className="p-4 text-center text-sm text-slate-500">
+                                        No se encontraron localidades.
+                                    </div>
+                                )}
+                            </div>
                         )}
                     </div>
                 
