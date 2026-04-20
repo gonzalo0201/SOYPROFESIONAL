@@ -113,20 +113,6 @@ export function ProfilePage() {
 
                 {/* Menu Items */}
                 <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-                    <Link
-                        to="/notifications"
-                        className="w-full flex items-center p-4 hover:bg-slate-50 transition-colors border-b border-slate-50"
-                    >
-                        <div className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-600 mr-4">
-                            <Bell size={20} />
-                        </div>
-                        <div className="flex-1 text-left">
-                            <h3 className="font-semibold text-slate-900 text-sm">Notificaciones</h3>
-                            <p className="text-xs text-slate-500">Historial de alertas</p>
-                        </div>
-                        <ChevronRight size={18} className="text-slate-300" />
-                    </Link>
-
                     <div className="w-full flex items-center p-4 hover:bg-slate-50 transition-colors cursor-pointer border-b border-slate-50">
                         <div className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-600 mr-4">
                             <HelpCircle size={20} />

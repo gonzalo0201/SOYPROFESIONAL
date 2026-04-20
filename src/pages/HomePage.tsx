@@ -1,4 +1,4 @@
-import { Search, MapPin, Briefcase, Wrench, GraduationCap, HardHat, CheckCircle } from 'lucide-react';
+import { Search, MapPin, Briefcase, Wrench, GraduationCap, HardHat, CheckCircle, Heart, Bell } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useState, useMemo } from 'react';
 import { ProfessionalCard } from '../components/ProfessionalCard';
@@ -96,13 +96,29 @@ export function HomePage() {
                 </div>
 
                 <div className="relative z-10">
-                    <div className="flex items-center gap-2 mb-8">
-                        <div className="w-8 h-8 bg-emerald-500 rounded-lg flex items-center justify-center font-black text-white text-lg">
-                            S
+                    <div className="flex items-center justify-between mb-8">
+                        <div className="flex items-center gap-2">
+                            <div className="w-8 h-8 bg-emerald-500 rounded-lg flex items-center justify-center font-black text-white text-lg">
+                                S
+                            </div>
+                            <h1 className="text-xl font-black text-white">
+                                Soy<span className="text-emerald-400">Profesional</span>
+                            </h1>
                         </div>
-                        <h1 className="text-xl font-black text-white">
-                            Soy<span className="text-emerald-400">Profesional</span>
-                        </h1>
+                        <div className="flex items-center gap-3">
+                            <button 
+                                onClick={() => navigate('/favorites')}
+                                className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white backdrop-blur-md border border-white/10 hover:bg-white/20 transition-colors"
+                            >
+                                <Heart size={20} />
+                            </button>
+                            <button 
+                                onClick={() => navigate('/notifications')}
+                                className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white backdrop-blur-md border border-white/10 hover:bg-white/20 transition-colors"
+                            >
+                                <Bell size={20} />
+                            </button>
+                        </div>
                     </div>
 
                     <h2 className="text-3xl font-black mb-3 leading-tight">
