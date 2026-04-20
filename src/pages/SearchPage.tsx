@@ -5,8 +5,7 @@ import { useProfessionals } from '../hooks/useProfessionals';
 import { ProfessionalCard } from '../components/ProfessionalCard';
 import clsx from 'clsx';
 import { useGeoref } from '../hooks/useGeoref';
-
-const CATEGORIES = ['Todos', 'Servicios', 'Técnicos', 'Profesionales', 'Oficios'];
+import { MAIN_CATEGORIES } from './HomePage';
 
 export function SearchPage() {
     const { professionals, isLoading } = useProfessionals();
@@ -18,12 +17,8 @@ export function SearchPage() {
     const locParam = searchParams.get('loc') || '';
 
     const getInitialCategory = () => {
-        if (!categoryParam) return 'Todos';
-        if (categoryParam === 'servicio') return 'Servicios';
-        if (categoryParam === 'tecnico') return 'Técnicos';
-        if (categoryParam === 'profesional') return 'Profesionales';
-        if (categoryParam === 'oficio') return 'Oficios';
-        return 'Todos';
+        if (!categoryParam) return 'todos';
+        return ['servicio', 'tecnico', 'profesional', 'oficio'].includes(categoryParam) ? categoryParam : 'todos';
     };
 
     const [searchTerm, setSearchTerm] = useState(qParam);
@@ -42,8 +37,11 @@ export function SearchPage() {
         if (locationTerm) params.set('loc', locationTerm);
         else params.delete('loc');
         
+        if (activeCategory && activeCategory !== 'todos') params.set('category', activeCategory);
+        else params.delete('category');
+        
         setSearchParams(params, { replace: true });
-    }, [searchTerm, locationTerm, setSearchParams, searchParams]);
+    }, [searchTerm, locationTerm, activeCategory, setSearchParams, searchParams]);
 
     const filteredPros = professionals.filter(pro => {
         const matchesSearch = !searchTerm || 
@@ -56,12 +54,12 @@ export function SearchPage() {
         const matchesLocation = !locationTerm || true; // Currently matching everything for location to not break demo
             
         let matchesCategory = true;
-        if (activeCategory !== 'Todos') {
+        if (activeCategory !== 'todos') {
             const trade = pro.trade.toLowerCase();
-            if (activeCategory === 'Servicios') matchesCategory = ['jardinero', 'limpieza', 'niñera', 'flete', 'paseador'].some(t => trade.includes(t));
-            else if (activeCategory === 'Técnicos') matchesCategory = ['aire', 'pc', 'celular', 'electrodomésticos', 'redes', 'cámaras'].some(t => trade.includes(t));
-            else if (activeCategory === 'Profesionales') matchesCategory = ['abogado', 'contador', 'arquitecto', 'fotógrafo', 'profesor', 'diseñador'].some(t => trade.includes(t));
-            else if (activeCategory === 'Oficios') matchesCategory = ['albañil', 'electricista', 'gasista', 'plomero', 'carpintero', 'pintor', 'soldador'].some(t => trade.includes(t));
+            if (activeCategory === 'servicio') matchesCategory = ['jardinero', 'limpieza', 'niñera', 'flete', 'paseador'].some(t => trade.includes(t));
+            else if (activeCategory === 'tecnico') matchesCategory = ['aire', 'pc', 'celular', 'electrodomésticos', 'redes', 'cámaras', 'técnico'].some(t => trade.includes(t));
+            else if (activeCategory === 'profesional') matchesCategory = ['abogado', 'contador', 'arquitecto', 'fotógrafo', 'profesor', 'diseñador', 'médico'].some(t => trade.includes(t));
+            else if (activeCategory === 'oficio') matchesCategory = ['albañil', 'electricista', 'gasista', 'plomero', 'carpintero', 'pintor', 'soldador'].some(t => trade.includes(t));
         }
 
         return matchesSearch && matchesCategory && matchesLocation;
@@ -160,20 +158,29 @@ export function SearchPage() {
                     </div>
                 </div>
 
-                {/* Categories Scrollable Row */}
-                <div className="flex gap-2 mt-4 overflow-x-auto pb-1 scrollbar-hide -mx-4 px-4">
-                    {CATEGORIES.map(cat => (
+                {/* Categories Flowing Row like in Home */}
+                <div className="flex gap-4 mt-4 overflow-x-auto scrollbar-hide -mx-4 px-6 pb-2">
+                    {MAIN_CATEGORIES.map((cat) => (
                         <button
-                            key={cat}
-                            onClick={() => setActiveCategory(cat)}
+                            key={cat.id}
+                            onClick={() => setActiveCategory(activeCategory === cat.id ? 'todos' : cat.id)}
                             className={clsx(
-                                "whitespace-nowrap px-4 py-1.5 rounded-full text-sm font-bold border transition-colors",
-                                activeCategory === cat 
-                                    ? "bg-emerald-500 text-white border-emerald-500" 
-                                    : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
+                                "flex flex-col items-center gap-2 group outline-none min-w-[72px] transition-all",
+                                activeCategory === cat.id ? "scale-105" : "opacity-70 hover:opacity-100"
                             )}
                         >
-                            {cat}
+                            <div className={clsx(
+                                "w-14 h-14 rounded-2xl flex items-center justify-center text-white transition-all",
+                                activeCategory === cat.id ? `${cat.color} shadow-lg shadow-emerald-900/20 ring-4 ring-emerald-50` : "bg-slate-200 text-slate-500"
+                            )}>
+                                <cat.icon size={activeCategory === cat.id ? 26 : 22} strokeWidth={2} />
+                            </div>
+                            <span className={clsx(
+                                "text-[10px] uppercase tracking-wide text-center transition-colors",
+                                activeCategory === cat.id ? "font-black text-slate-800" : "font-bold text-slate-500"
+                            )}>
+                                {cat.label}
+                            </span>
                         </button>
                     ))}
                 </div>

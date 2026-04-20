@@ -7,7 +7,6 @@ import type { ProfessionalDisplay } from '../services/professionals';
 import clsx from 'clsx';
 
 export const MAIN_CATEGORIES = [
-    { id: 'todos', label: 'Todos', icon: Star, color: 'bg-slate-800' },
     { id: 'servicio', label: 'Servicios', icon: Briefcase, color: 'bg-emerald-500' },
     { id: 'tecnico', label: 'Técnicos', icon: Wrench, color: 'bg-teal-600' },
     { id: 'profesional', label: 'Profesionales', icon: GraduationCap, color: 'bg-cyan-600' },
@@ -153,7 +152,7 @@ export function HomePage() {
                         {MAIN_CATEGORIES.map((cat) => (
                             <button
                                 key={cat.id}
-                                onClick={() => setActiveCategory(cat.id)}
+                                onClick={() => setActiveCategory(activeCategory === cat.id ? 'todos' : cat.id)}
                                 className={clsx(
                                     "flex flex-col items-center gap-2 group outline-none min-w-[72px] transition-all",
                                     activeCategory === cat.id ? "scale-105" : "opacity-70 hover:opacity-100"
