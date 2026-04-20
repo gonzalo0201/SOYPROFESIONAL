@@ -3,6 +3,8 @@ import { ArrowLeft, Camera, Check, X, Plus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import clsx from 'clsx';
 import { MAIN_CATEGORIES } from './HomePage';
+import { useAuth } from '../contexts/AuthContext';
+import { createProfessional } from '../services/professionals';
 
 type Step = 1 | 2 | 3;
 
@@ -38,7 +40,9 @@ export function PostPage() {
     const [email, setEmail] = useState('');
     const [tags, setTags] = useState<string[]>([]);
     const [newTag, setNewTag] = useState('');
-
+    const [isPublishing, setIsPublishing] = useState(false);
+    const { user } = useAuth();
+    
     const addTag = (tag: string) => {
         const trimmed = tag.trim();
         if (!trimmed || tags.includes(trimmed)) return;
@@ -65,9 +69,35 @@ export function PostPage() {
         else setStep((prev) => (prev - 1) as Step);
     };
 
-    const handlePublish = () => {
-        alert('¡Anuncio publicado con éxito!');
-        navigate('/');
+    const handlePublish = async () => {
+        if (!user) {
+            alert('Por favor decarga la App e inicia sesión para poder crear tu perfil profesional.');
+            return;
+        }
+
+        setIsPublishing(true);
+        try {
+            const finalTrade = subcategory === 'otro' ? customSubcategory : subcategory;
+            const fullDescription = `${title}\n\n${description}`;
+
+            await createProfessional({
+                profile_id: user.id,
+                trade: finalTrade,
+                description: fullDescription,
+                skills: tags,
+                lat: -38.7183, // default Bahía Blanca
+                lng: -62.2663,
+                status: location || 'Disponible'
+            });
+
+            alert('¡Tu perfil profesional fue publicado con éxito!');
+            navigate('/');
+        } catch (error) {
+            console.error('Error al publicar:', error);
+            alert('Hubo un inconveniente al publicar, intenta nuevamente!');
+        } finally {
+            setIsPublishing(false);
+        }
     };
 
     const suggestions = category ? (TAG_SUGGESTIONS[category] || []).filter(s => !tags.includes(s)) : [];
@@ -372,9 +402,16 @@ export function PostPage() {
                         </button>
                         <button
                             onClick={handlePublish}
-                            className="flex-[2] bg-emerald-500 hover:bg-emerald-600 text-white py-3.5 rounded-xl font-black transition-colors flex items-center justify-center gap-2 shadow-emerald-500/20 shadow-lg"
+                            disabled={isPublishing}
+                            className="flex-[2] bg-emerald-500 hover:bg-emerald-600 text-white py-3.5 rounded-xl font-black transition-colors flex items-center justify-center gap-2 shadow-emerald-500/20 shadow-lg disabled:opacity-50"
                         >
-                            <Check size={18} strokeWidth={3} /> Publicar
+                            {isPublishing ? (
+                                'Publicando...'
+                            ) : (
+                                <>
+                                    <Check size={18} strokeWidth={3} /> Publicar
+                                </>
+                            )}
                         </button>
                     </div>
                 </div>

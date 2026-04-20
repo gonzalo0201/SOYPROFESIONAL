@@ -136,3 +136,44 @@ export async function setProfessionalBoosted(profileId: string) {
 
   return { error: null };
 }
+
+export async function createProfessional(data: {
+  profile_id: string;
+  trade: string;
+  description: string;
+  skills: string[];
+  lat: number;
+  lng: number;
+  status: string;
+}) {
+  const { data: result, error } = await supabase
+    .from('professionals')
+    .insert([
+      {
+        profile_id: data.profile_id,
+        trade: data.trade,
+        description: data.description,
+        skills: data.skills,
+        lat: data.lat,
+        lng: data.lng,
+        status: data.status,
+        rating: 0,
+        review_count: 0,
+        is_verified: false,
+        is_early_adopter: true,
+        is_boosted: false
+      }
+    ])
+    .select()
+    .single();
+
+  if (error) throw error;
+  
+  // Upgrade profile role to 'professional'
+  await supabase
+    .from('profiles')
+    .update({ role: 'professional' })
+    .eq('id', data.profile_id);
+    
+  return result;
+}
