@@ -1,4 +1,4 @@
-import { Search, MapPin, Briefcase, Wrench, GraduationCap, HardHat, Star, CheckCircle } from 'lucide-react';
+import { Search, MapPin, Briefcase, Wrench, GraduationCap, HardHat, CheckCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useState, useMemo } from 'react';
 import { ProfessionalCard } from '../components/ProfessionalCard';
