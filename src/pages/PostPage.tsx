@@ -14,6 +14,10 @@ const TAG_SUGGESTIONS: Record<string, string[]> = {
     oficio: ['Corte de césped', 'Poda de cercos', 'Limpieza de terrenos', 'Riego automático', 'Pintura interior', 'Pintura exterior', 'Instalación eléctrica', 'Destape de cañerías', 'Colocación de cerámicos', 'Construcción en seco (Durlock)', 'Soldadura', 'Carpintería a medida'],
 };
 
+const PROFESSIONS_LIST = [
+"Abogado Corporativo y Mercantil", "Abogado Penalista", "Actuario", "Analista de Datos en la Empresa (Business Analytics)", "Animador 3D / Artista de Efectos Visuales (CGI)", "Antropólogo (Social y Físico)", "Arqueólogo de Campo", "Arquitecto Paisajista", "Arquitecto Urbanista", "Astrónomo / Astrofísico Observacional", "Bacteriólogo Especialista", "Bioeticista Clínico", "Biólogo Marino", "Biólogo Molecular y Celular", "Botánico / Fisiólogo Vegetal", "Bromatólogo Clínico e Industrial", "Chef Ejecutivo / Licenciado en Artes Culinarias", "Climatólogo / Meteorólogo Dinámico", "Consultor Financiero / Wealth Manager", "Consultor en Sostenibilidad Estratégica", "Contador Público Autorizado", "Controlador de Tráfico Aéreo", "Criminólogo Académico", "Crítico de Arte y Estética", "Dermatólogo", "Diplomático de Carrera", "Director Documentalista", "Director Teatral y de Puesta en Escena", "Director de Recursos Humanos (CHRO)", "Diseñador Gráfico Senior", "Diseñador Industrial y de Producto", "Ecólogo de Sistemas", "Economista Macro/Micro", "Economista de la Salud", "Editor Literario / Corrector de Estilo y Ortotipografía", "Educador / Licenciado en Pedagogía", "Epidemiólogo", "Especialista en Administración de Negocios Digitales", "Especialista en Calidad en la Salud", "Especialista en Ecología y Biodiversidad", "Especialista en Investigación de Servicios", "Especialista en Propiedad Intelectual", "Especialista en Relaciones Públicas Institucionales", "Especialista en Óptica Cuántica y Fotónica", "Estadístico Aplicado / Biométrico", "Farmacéutico Clínico", "Filólogo / Lingüista", "Fiscal / Ministerio Público", "Fisioterapeuta / Kinesiólogo", "Físico Médico Clínico", "Físico Teórico", "Físico de Partículas Experimentales", "Físico-químico", "Fotógrafo Profesional de Estudio / Fotoperiodista", "Genetista Médico", "Geofísico", "Geógrafo Analítico Espacial", "Geólogo Estructural", "Geoquímico", "Geriatra", "Gestor Cultural y de Políticas Públicas", "Gestor de Proyectos Senior (Certificación PMP)", "Historiador", "Ingeniero Aeroespacial / Aeronáutico", "Ingeniero Agrónomo", "Ingeniero Alimentario", "Ingeniero Ambiental / Sanitario", "Ingeniero Civil", "Ingeniero Electromecánico", "Ingeniero Electrónico", "Ingeniero Estructural Especialista", "Ingeniero Forestal", "Ingeniero Industrial", "Ingeniero Mecánico", "Ingeniero Naval y Oceánico", "Ingeniero de Inteligencia Artificial", "Ingeniero de Procesos Químicos Industriales", "Ingeniero de Recursos Minerales", "Ingeniero de Sistemas Audiovisuales", "Ingeniero de Sistemas Biológicos", "Ingeniero de Sistemas de Información", "Ingeniero en Computación Teórica", "Ingeniero en Robótica y Automática", "Ingeniero en Satélites / Órbita", "Ingeniero en Seguridad Aeronáutica", "Ingeniero de la Construcción", "Inmunólogo", "Investigador Pedagógico / Científico de la Educación", "Investigador de Fibras y Polímeros", "Jefe / Oficial de Máquinas Marinas", "Juez / Magistrado", "Licenciado en Administración de Empresas", "Licenciado en Administración y Gestión Pública", "Licenciado en Bibliotecología y Ciencias de la Información", "Licenciado en Ciencias Hídricas Aplicadas", "Licenciado en Comercio Internacional", "Licenciado en Diseño de Interiores", "Licenciado en Diseño de Moda e Indumentaria", "Licenciado en Educación Especial / Inclusiva", "Licenciado en Logística y Transporte", "Licenciado en Marketing / Mercadotecnia", "Licenciado en Organización Industrial", "Licenciado en Relaciones Industriales", "Licenciado en Restauración y Conservación de Patrimonio", "Licenciado en Salud Pública", "Licenciado en Trabajo Social", "Literato / Escritor de Ficción y Ensayo", "Logopeda / Terapeuta de Lenguaje", "Matemático Aplicado e Industrial", "Matemático Puro", "Mediador / Conciliador de Conflictos", "Microbiólogo Industrial / Clínico", "Museólogo / Curador General", "Músico Académico / Director de Orquesta Sinfónica", "Médico Cirujano", "Médico Especialista en Urgencias", "Médico Internista", "Neurocientífico Cognitivo y Molecular", "Notario / Escribano Público", "Nutriólogo / Dietista Clínico", "Oceanógrafo Físico y Biológico", "Odontólogo", "Optometrista", "Paleontólogo de Vertebrados/Invertebrados", "Pediatra", "Periodista de Investigación", "Piloto de Aviación Comercial", "Planificador Integral de Eventos Profesionales", "Politólogo", "Productor Ejecutivo Cinematográfico", "Promotor y Marchante de Arte Contemporáneo", "Psicólogo Clínico", "Psiquiatra", "Químico Farmacobiólogo", "Químico Forense", "Químico Orgánico", "Químico Puro / Investigador", "Redactor Creativo (Copywriter Publicitario)", "Sismólogo Analítico", "Sociólogo", "Teólogo / Científico de las Religiones", "Terapeuta Ocupacional", "Topólogo", "Traductor Profesional / Intérprete Simultáneo", "Traumatólogo y Ortopedista", "Urbanista", "Veterinario", "Vulcanólogo"
+];
+
 export function PostPage() {
     const navigate = useNavigate();
     const [step, setStep] = useState<Step>(1);
@@ -21,7 +25,8 @@ export function PostPage() {
     // Form State
     const [category, setCategory] = useState<string | null>(null);
     const [title, setTitle] = useState('');
-    const [subcategory, setSubcategory] = useState('plomeria');
+    const [subcategory, setSubcategory] = useState('');
+    const [customSubcategory, setCustomSubcategory] = useState('');
     const [description, setDescription] = useState('');
     const [location, setLocation] = useState('');
     const [name, setName] = useState('');
@@ -43,7 +48,11 @@ export function PostPage() {
 
     const nextStep = () => {
         if (step === 1 && !category) return;
-        if (step === 2 && (!title || !description || !location || !name || !whatsapp)) return;
+        if (step === 2) {
+            if (!subcategory) return;
+            if (subcategory === 'otro' && !customSubcategory.trim()) return;
+            if (!title || !description || !location || !name || !whatsapp) return;
+        }
         setStep((prev) => (prev + 1) as Step);
     };
 
@@ -128,30 +137,55 @@ export function PostPage() {
             {step === 2 && (
                 <div className="p-4 flex-1 space-y-6">
                     <div>
-                        <label className="block text-sm font-bold text-slate-900 mb-2">Título</label>
-                        <input
-                            type="text"
-                            value={title}
-                            onChange={(e) => setTitle(e.target.value)}
-                            placeholder="Ej: Gasista matriculado, Plomero 24hs..."
-                            className="w-full bg-white px-4 py-3 rounded-xl border border-slate-200 outline-none focus:border-emerald-400 text-sm"
-                        />
-                    </div>
-
-                    <div>
                         <label className="block text-sm font-bold text-slate-900 mb-2">Subcategoría</label>
                         <select
                             value={subcategory}
                             onChange={(e) => setSubcategory(e.target.value)}
                             className="w-full bg-white px-4 py-3 rounded-xl border border-slate-200 outline-none focus:border-emerald-400 text-sm appearance-none"
                         >
-                            <option value="plomeria">Plomería</option>
-                            <option value="electricidad">Electricidad</option>
-                            <option value="gas">Gas</option>
-                            <option value="jardineria">Jardinería</option>
-                            <option value="limpieza">Limpieza</option>
-                            <option value="construccion">Construcción</option>
+                            <option value="" disabled>Seleccioná una subcategoría...</option>
+                            {category === 'profesional' ? (
+                                <>
+                                    {PROFESSIONS_LIST.map(prof => (
+                                        <option key={prof} value={prof}>{prof}</option>
+                                    ))}
+                                </>
+                            ) : (
+                                <>
+                                    <option value="plomeria">Plomería</option>
+                                    <option value="electricidad">Electricidad</option>
+                                    <option value="gas">Gas</option>
+                                    <option value="jardineria">Jardinería</option>
+                                    <option value="limpieza">Limpieza</option>
+                                    <option value="construccion">Construcción</option>
+                                </>
+                            )}
+                            <option value="otro">Otro</option>
                         </select>
+                    </div>
+
+                    {subcategory === 'otro' && (
+                        <div>
+                            <label className="block text-sm font-bold text-slate-900 mb-2">Especificá tu subcategoría</label>
+                            <input
+                                type="text"
+                                value={customSubcategory}
+                                onChange={(e) => setCustomSubcategory(e.target.value)}
+                                placeholder="Ej: Especialista en..."
+                                className="w-full bg-white px-4 py-3 rounded-xl border border-slate-200 outline-none focus:border-emerald-400 text-sm"
+                            />
+                        </div>
+                    )}
+
+                    <div>
+                        <label className="block text-sm font-bold text-slate-900 mb-2">Título</label>
+                        <input
+                            type="text"
+                            value={title}
+                            onChange={(e) => setTitle(e.target.value)}
+                            placeholder="Ej: Gasista matriculado, Médico pediatra..."
+                            className="w-full bg-white px-4 py-3 rounded-xl border border-slate-200 outline-none focus:border-emerald-400 text-sm"
+                        />
                     </div>
 
                     <div>
@@ -277,7 +311,7 @@ export function PostPage() {
                         </button>
                         <button
                             onClick={nextStep}
-                            disabled={!title || !description || !location || !name || !whatsapp}
+                            disabled={!subcategory || (subcategory === 'otro' && !customSubcategory.trim()) || !title || !description || !location || !name || !whatsapp}
                             className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white py-3.5 rounded-xl font-bold transition-colors disabled:opacity-50 disabled:cursor-not-allowed uppercase tracking-wide"
                         >
                             Siguiente →
