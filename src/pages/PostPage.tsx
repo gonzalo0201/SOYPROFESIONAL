@@ -5,6 +5,8 @@ import clsx from 'clsx';
 import { MAIN_CATEGORIES } from './HomePage';
 import { useAuth } from '../contexts/AuthContext';
 import { createProfessional } from '../services/professionals';
+import { uploadPortfolioImages, compressImage } from '../services/storage';
+import { supabase } from '../lib/supabase';
 
 type Step = 1 | 2 | 3;
 
@@ -40,6 +42,8 @@ export function PostPage() {
     const [email, setEmail] = useState('');
     const [tags, setTags] = useState<string[]>([]);
     const [newTag, setNewTag] = useState('');
+    const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+    const [previewUrls, setPreviewUrls] = useState<string[]>([]);
     const [isPublishing, setIsPublishing] = useState(false);
     const { user } = useAuth();
     
@@ -80,7 +84,8 @@ export function PostPage() {
             const finalTrade = subcategory === 'otro' ? customSubcategory : subcategory;
             const fullDescription = `${title}\n\n${description}`;
 
-            await createProfessional({
+            // Create professional first
+            const professional = await createProfessional({
                 profile_id: user.id,
                 trade: finalTrade,
                 description: fullDescription,
@@ -89,6 +94,22 @@ export function PostPage() {
                 lng: -62.2663,
                 status: location || 'Disponible'
             });
+
+            // Upload portfolio images if any
+            if (selectedFiles.length > 0) {
+                const { urls } = await uploadPortfolioImages(user.id, selectedFiles);
+                if (urls.length > 0) {
+                    await supabase.from('portfolio_items').insert({
+                        professional_id: professional.id,
+                        images: urls,
+                        caption: title,
+                        description: 'Imágenes generales de mis servicios',
+                        category: 'general',
+                        tags: tags,
+                        location: location || 'Bahía Blanca'
+                    });
+                }
+            }
 
             alert('¡Tu perfil profesional fue publicado con éxito!');
             navigate('/');
@@ -101,6 +122,46 @@ export function PostPage() {
     };
 
     const suggestions = category ? (TAG_SUGGESTIONS[category] || []).filter(s => !tags.includes(s)) : [];
+
+    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const files = Array.from(e.target.files || []);
+        if (files.length === 0) return;
+
+        // Check total files (max 5)
+        if (selectedFiles.length + files.length > 5) {
+            alert('Puedes subir un máximo de 5 fotos.');
+            return;
+        }
+
+        const newFiles: File[] = [];
+        const newUrls: string[] = [];
+
+        for (const file of files) {
+            // Check size (max 5MB per file before compression)
+            if (file.size > 5 * 1024 * 1024) continue;
+            
+            const compressedFile = await compressImage(file);
+            newFiles.push(compressedFile);
+            newUrls.push(URL.createObjectURL(compressedFile));
+        }
+
+        setSelectedFiles(prev => [...prev, ...newFiles]);
+        setPreviewUrls(prev => [...prev, ...newUrls]);
+    };
+
+    const removeFile = (index: number) => {
+        setPreviewUrls(prev => {
+            const arr = [...prev];
+            URL.revokeObjectURL(arr[index]);
+            arr.splice(index, 1);
+            return arr;
+        });
+        setSelectedFiles(prev => {
+            const arr = [...prev];
+            arr.splice(index, 1);
+            return arr;
+        });
+    };
 
     return (
         <div className="bg-slate-50 min-h-screen flex flex-col pb-24">
@@ -364,11 +425,36 @@ export function PostPage() {
             {step === 3 && (
                 <div className="p-4 flex-1 space-y-6">
                     <div>
-                        <label className="block text-sm font-bold text-slate-900 mb-2">Fotos (0/5)</label>
-                        <button className="w-32 h-32 border-2 border-dashed border-slate-300 rounded-2xl flex flex-col items-center justify-center gap-2 hover:bg-slate-50 transition-colors text-slate-500">
-                            <Camera size={24} />
-                            <span className="text-xs font-bold">Agregar</span>
-                        </button>
+                        <label className="block text-sm font-bold text-slate-900 mb-2">Fotos ({selectedFiles.length}/5)</label>
+                        
+                        <div className="flex flex-wrap gap-3">
+                            {previewUrls.map((url, index) => (
+                                <div key={url} className="relative w-24 h-24 rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
+                                    <img src={url} alt={`preview ${index}`} className="w-full h-full object-cover" />
+                                    <button 
+                                        onClick={() => removeFile(index)}
+                                        className="absolute top-1 right-1 bg-red-500 text-white p-1 rounded-full shadow hover:bg-red-600 transition-colors"
+                                    >
+                                        <X size={14} strokeWidth={3} />
+                                    </button>
+                                </div>
+                            ))}
+                            
+                            {selectedFiles.length < 5 && (
+                                <label className="w-24 h-24 border-2 border-dashed border-emerald-300 bg-emerald-50 rounded-2xl flex flex-col items-center justify-center gap-2 hover:bg-emerald-100 transition-colors text-emerald-600 cursor-pointer shadow-sm">
+                                    <Camera size={24} />
+                                    <span className="text-[10px] font-bold">Agregar</span>
+                                    <input 
+                                        type="file" 
+                                        multiple 
+                                        accept="image/jpeg, image/png, image/webp" 
+                                        className="hidden" 
+                                        onChange={handleFileChange}
+                                    />
+                                </label>
+                            )}
+                        </div>
+                        <p className="text-xs text-slate-500 mt-2">Puedes subir hasta 5 fotos para mostrar tus mejores trabajos resolviendo esta categoría.</p>
                     </div>
 
                     <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
