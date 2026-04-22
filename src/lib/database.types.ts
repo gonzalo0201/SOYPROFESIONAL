@@ -62,6 +62,7 @@ export interface Database {
           is_early_adopter: boolean
           is_boosted: boolean
           created_at: string
+          social_links: Json | null
         }
         Insert: {
           id?: string
@@ -78,6 +79,7 @@ export interface Database {
           is_early_adopter?: boolean
           is_boosted?: boolean
           created_at?: string
+          social_links?: Json | null
         }
         Update: {
           trade?: string
@@ -91,6 +93,7 @@ export interface Database {
           is_verified?: boolean
           is_early_adopter?: boolean
           is_boosted?: boolean
+          social_links?: Json | null
         }
       }
       reviews: {

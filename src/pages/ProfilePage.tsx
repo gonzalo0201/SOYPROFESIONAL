@@ -83,24 +83,36 @@ export function ProfilePage() {
                         </div>
                     </div>
 
-                    <Link
-                        to="/edit-profile"
-                        className="mt-4 w-full flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white py-2.5 rounded-xl text-sm font-bold transition-colors active:scale-[0.98]"
-                    >
-                        <User size={16} />
-                        Editar perfil
-                    </Link>
-
-                    {profile?.role === 'professional' && (
-                        <button
-                            onClick={handleBoost}
-                            disabled={isBoosting || boostSuccess}
-                            className="mt-2 w-full flex items-center justify-center gap-2 bg-slate-900 hover:bg-slate-800 disabled:bg-slate-700 text-emerald-400 py-2.5 rounded-xl text-sm font-bold transition-colors active:scale-[0.98]"
+                    <div className="flex flex-col gap-2 mt-4">
+                        <Link
+                            to="/edit-profile"
+                            className="w-full flex items-center justify-center gap-2 bg-slate-900 hover:bg-slate-800 text-white py-2.5 rounded-xl text-sm font-bold transition-colors active:scale-[0.98]"
                         >
-                            {isBoosting ? <Loader2 size={16} className="animate-spin" /> : <Zap size={16} />}
-                            {boostSuccess ? '¡Perfil Impulsado!' : 'Impulsar Perfil (Gratis x100)'}
-                        </button>
-                    )}
+                            <User size={16} />
+                            Editar mis datos
+                        </Link>
+
+                        {profile?.role === 'professional' && (
+                            <Link
+                                to="/edit-professional"
+                                className="w-full flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white py-2.5 rounded-xl text-sm font-bold transition-colors shadow-md shadow-emerald-500/20 active:scale-[0.98]"
+                            >
+                                <Zap size={16} />
+                                Mi profesión / Anuncio
+                            </Link>
+                        )}
+                        
+                        {profile?.role === 'professional' && (
+                            <button
+                                onClick={handleBoost}
+                                disabled={isBoosting || boostSuccess}
+                                className="w-full flex items-center justify-center gap-2 bg-amber-50 hover:bg-amber-100 disabled:bg-slate-100 text-amber-600 border border-amber-200 py-2.5 rounded-xl text-sm font-bold transition-colors active:scale-[0.98]"
+                            >
+                                {isBoosting ? <Loader2 size={16} className="animate-spin" /> : <Zap size={16} />}
+                                {boostSuccess ? '¡Perfil Impulsado!' : 'Impulsar Perfil (Gratis x100)'}
+                            </button>
+                        )}
+                    </div>
                 </div>
 
                 {/* Notifications Toggle */}

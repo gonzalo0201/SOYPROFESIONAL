@@ -58,11 +58,14 @@ export function ProfessionalProfilePage() {
 
     // Flatten portfolio images and limit to 10
     const allPhotos = portfolio.flatMap(p => p.images).slice(0, 10);
-    const mockPhone = "5492994123456";
+    const socialLinks = professional.socialLinks || {};
+    const whatsappNumber = socialLinks.whatsapp || "No disponible";
 
     const handleWhatsAppClick = () => {
+        if (!socialLinks.whatsapp) return;
+        const number = socialLinks.whatsapp.replace(/\D/g, ''); // Extract only digits
         const text = encodeURIComponent(`Hola ${professional.name}, vi tu perfil en SoyProfesional y me gustaría consultarte por tus servicios.`);
-        window.open(`https://wa.me/${mockPhone}?text=${text}`, '_blank');
+        window.open(`https://wa.me/${number}?text=${text}`, '_blank');
     };
 
     return (
@@ -149,32 +152,40 @@ export function ProfessionalProfilePage() {
                             <span className="font-medium">contacto@{professional.name.toLowerCase().replace(' ', '')}.com</span>
                         </div>
                         
-                        <div className="bg-emerald-50 text-emerald-700 rounded-xl p-3 flex items-center gap-3 border border-emerald-100">
-                            <MessageCircle size={18} className="text-emerald-500" />
-                            <span className="font-bold">{mockPhone}</span>
-                        </div>
+                        {socialLinks.whatsapp ? (
+                            <div className="bg-emerald-50 text-emerald-700 rounded-xl p-3 flex items-center gap-3 border border-emerald-100">
+                                <MessageCircle size={18} className="text-emerald-500" />
+                                <span className="font-bold">{whatsappNumber}</span>
+                            </div>
+                        ) : null}
 
-                        {/* Social Mock Links */}
+                        {/* Real Social Links */}
                         <div className="flex flex-col gap-2 pt-2">
-                            <div className="bg-pink-50 text-pink-700 rounded-xl p-3 flex items-center gap-3 border border-pink-100">
-                                <Instagram size={18} className="text-pink-500" />
-                                <span className="font-medium">@{professional.name.toLowerCase().replace(' ', '')}_ok</span>
-                            </div>
-                            <div className="bg-blue-50 text-blue-700 rounded-xl p-3 flex items-center gap-3 border border-blue-100">
-                                <Facebook size={18} className="text-blue-500" />
-                                <span className="font-medium">{professional.name} Oficial</span>
-                            </div>
+                            {socialLinks.instagram ? (
+                                <a href={`https://instagram.com/${socialLinks.instagram}`} target="_blank" rel="noopener noreferrer" className="bg-pink-50 hover:bg-pink-100 text-pink-700 rounded-xl p-3 flex items-center gap-3 border border-pink-100 transition-colors">
+                                    <Instagram size={18} className="text-pink-500" />
+                                    <span className="font-medium">@{socialLinks.instagram}</span>
+                                </a>
+                            ) : null}
+                            {socialLinks.facebook ? (
+                                <a href={socialLinks.facebook} target="_blank" rel="noopener noreferrer" className="bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-xl p-3 flex items-center gap-3 border border-blue-100 transition-colors">
+                                    <Facebook size={18} className="text-blue-500" />
+                                    <span className="font-medium">Perfil de Facebook</span>
+                                </a>
+                            ) : null}
                         </div>
 
-                        {/* WhatsApp CTA Button — uses WhatsApp's native green */}
-                        <button 
-                            onClick={handleWhatsAppClick}
-                            className="w-full mt-2 py-3.5 rounded-xl font-black text-sm flex items-center justify-center gap-2 active:scale-[0.98] transition-all shadow-md text-white"
-                            style={{ backgroundColor: '#25D366', boxShadow: '0 4px 14px rgba(37, 211, 102, 0.3)' }}
-                        >
-                            <MessageCircle size={18} />
-                            Contactar por WhatsApp
-                        </button>
+                        {/* WhatsApp CTA Button */}
+                        {socialLinks.whatsapp && (
+                            <button 
+                                onClick={handleWhatsAppClick}
+                                className="w-full mt-2 py-3.5 rounded-xl font-black text-sm flex items-center justify-center gap-2 active:scale-[0.98] transition-all shadow-md text-white"
+                                style={{ backgroundColor: '#25D366', boxShadow: '0 4px 14px rgba(37, 211, 102, 0.3)' }}
+                            >
+                                <MessageCircle size={18} />
+                                Contactar por WhatsApp
+                            </button>
+                        )}
                     </div>
                 </div>
 

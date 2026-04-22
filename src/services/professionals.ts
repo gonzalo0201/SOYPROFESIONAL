@@ -17,6 +17,7 @@ export interface ProfessionalDisplay {
   status: string;
   description: string;
   skills: string[];
+  socialLinks?: Record<string, string> | null;
 }
 
 // Convert DB row to display format
@@ -36,6 +37,7 @@ function toDisplay(pro: ProfessionalWithProfile): ProfessionalDisplay {
     status: pro.status,
     description: pro.description,
     skills: pro.skills,
+    socialLinks: (pro.social_links as Record<string, string>) || null,
   };
 }
 
@@ -108,6 +110,7 @@ export async function updateProfessionalProfile(
     lat?: number;
     lng?: number;
     is_boosted?: boolean;
+    social_links?: Record<string, string>;
   }
 ) {
   const { error } = await supabase
