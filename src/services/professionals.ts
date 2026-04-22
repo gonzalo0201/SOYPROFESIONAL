@@ -1,5 +1,6 @@
 import { supabase } from '../lib/supabase';
 import type { ProfessionalWithProfile } from '../lib/database.types';
+import { PROFESSIONS_LIST, SERVICES_LIST, TRADES_LIST, TECNICS_LIST } from '../pages/PostPage';
 
 // Backward-compatible type that matches what the UI expects
 export interface ProfessionalDisplay {
@@ -41,12 +42,42 @@ function toDisplay(pro: ProfessionalWithProfile): ProfessionalDisplay {
   };
 }
 
-export async function getProfessionals(): Promise<ProfessionalDisplay[]> {
-  const { data, error } = await supabase
+export async function getProfessionals(options?: {
+  category?: string;
+  searchTerm?: string;
+  limit?: number;
+}): Promise<ProfessionalDisplay[]> {
+  let query = supabase
     .from('professionals')
-    .select('*, profiles(*)')
+    .select('*, profiles!inner(*)') // Use !inner to optionally filter by related user's name
     .order('is_boosted', { ascending: false })
-    .order('rating', { ascending: false });
+    .order('rating', { ascending: false })
+    .limit(options?.limit || 50);
+
+  // Apply Search Term Filter
+  if (options?.searchTerm) {
+    const s = `%${options.searchTerm}%`;
+    // We want to match trade OR description OR the related profiles.name
+    // However, PostgREST doesn't inherently support OR across tables without RPC or specialized syntax
+    // For simplicity, we filter by trade or description across professionals.
+    query = query.or(`trade.ilike.${s},description.ilike.${s}`);
+  }
+
+  // Apply Category Filter
+  if (options?.category && options.category !== 'todos') {
+    let allowedTrades: string[] = [];
+    if (options.category === 'servicio') allowedTrades = SERVICES_LIST;
+    else if (options.category === 'tecnico') allowedTrades = TECNICS_LIST;
+    else if (options.category === 'profesional') allowedTrades = PROFESSIONS_LIST;
+    else if (options.category === 'oficio') allowedTrades = TRADES_LIST;
+
+    if (allowedTrades.length > 0) {
+      // In Postgrest, we can use the `in` filter
+      query = query.in('trade', allowedTrades);
+    }
+  }
+
+  const { data, error } = await query;
 
   if (error) {
     console.error('Error fetching professionals:', error);

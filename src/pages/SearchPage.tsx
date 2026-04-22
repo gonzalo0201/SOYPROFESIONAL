@@ -6,10 +6,8 @@ import { ProfessionalCard } from '../components/ProfessionalCard';
 import clsx from 'clsx';
 import { useGeoref } from '../hooks/useGeoref';
 import { MAIN_CATEGORIES } from './HomePage';
-import { PROFESSIONS_LIST, SERVICES_LIST, TRADES_LIST, TECNICS_LIST } from './PostPage';
 
 export function SearchPage() {
-    const { professionals, isLoading } = useProfessionals();
     const [searchParams, setSearchParams] = useSearchParams();
     
     // Initial Params
@@ -25,6 +23,11 @@ export function SearchPage() {
     const [searchTerm, setSearchTerm] = useState(qParam);
     const [locationTerm, setLocationTerm] = useState(locParam);
     const [activeCategory, setActiveCategory] = useState(getInitialCategory());
+
+    const { professionals: filteredPros, isLoading } = useProfessionals(
+        activeCategory === 'todos' ? undefined : activeCategory,
+        searchTerm || undefined
+    );
 
     const { localidades, isLoading: isLocLoading } = useGeoref(locationTerm);
     const [showLocSuggestions, setShowLocSuggestions] = useState(false);
@@ -44,36 +47,8 @@ export function SearchPage() {
         setSearchParams(params, { replace: true });
     }, [searchTerm, locationTerm, activeCategory, setSearchParams, searchParams]);
 
-    const filteredPros = professionals.filter(pro => {
-        const matchesSearch = !searchTerm || 
-            pro.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            pro.trade.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            (pro.skills && pro.skills.some(s => s.toLowerCase().includes(searchTerm.toLowerCase())));
-            
-        // We lack location data for mock users, but this serves as a placeholder
-        // In a real database, you'd check pro.city or pro.address
-        const matchesLocation = !locationTerm || true; // Currently matching everything for location to not break demo
-            
-        let matchesCategory = true;
-        if (activeCategory !== 'todos') {
-            const tradeLower = pro.trade.toLowerCase();
-            
-            // Helper function to check if the trade exists in our huge lists (ignoring case)
-            const isInList = (list: string[]) => list.some(item => tradeLower === item.toLowerCase());
-            
-            if (activeCategory === 'servicio') {
-                matchesCategory = isInList(SERVICES_LIST) || ['limpieza', 'flete'].some(t => tradeLower.includes(t));
-            } else if (activeCategory === 'tecnico') {
-                matchesCategory = isInList(TECNICS_LIST) || ['aire', 'pc', 'celular'].some(t => tradeLower.includes(t));
-            } else if (activeCategory === 'profesional') {
-                matchesCategory = isInList(PROFESSIONS_LIST) || ['abogado', 'médico'].some(t => tradeLower.includes(t));
-            } else if (activeCategory === 'oficio') {
-                matchesCategory = isInList(TRADES_LIST) || ['albañil', 'electricista', 'gasista'].some(t => tradeLower.includes(t));
-            }
-        }
-
-        return matchesSearch && matchesCategory && matchesLocation;
-    });
+    // Backend handles filtering now via useProfessionals()! 
+    // We already get exactly what we asked for in `filteredPros`.
 
     return (
         <div className="bg-slate-50 min-h-screen flex flex-col pb-24">

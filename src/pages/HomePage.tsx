@@ -1,6 +1,6 @@
 import { Search, MapPin, Briefcase, Wrench, GraduationCap, HardHat, CheckCircle, Heart, Bell } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { ProfessionalCard } from '../components/ProfessionalCard';
 import { useProfessionals } from '../hooks/useProfessionals';
 import clsx from 'clsx';
@@ -24,11 +24,7 @@ export function HomePage() {
     // Active category filter on the Home page itself
     const [activeCategory, setActiveCategory] = useState<string>('todos');
 
-    const { professionals } = useProfessionals(); 
-    
-    const allPros = useMemo(() => {
-        return [...professionals];
-    }, [professionals]);
+    const { professionals } = useProfessionals(activeCategory === 'todos' ? undefined : activeCategory);
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
@@ -42,22 +38,8 @@ export function HomePage() {
         });
     };
 
-    // Filter the displayed professionals instantly based on local category click
-    const displayedPros = useMemo(() => {
-        if (activeCategory === 'todos') {
-            // Unordered list of everything, but boosted at top like the original app did
-            return allPros.sort((a, b) => (b.isBoosted ? 1 : 0) - (a.isBoosted ? 1 : 0));
-        }
-
-        return allPros.filter(pro => {
-            const t = pro.trade.toLowerCase();
-            if (activeCategory === 'servicio') return ['niñera', 'flete', 'limpieza', 'jardinero'].some(k => t.includes(k));
-            if (activeCategory === 'tecnico') return ['pc', 'aire', 'celular', 'electrodomésticos', 'técnico'].some(k => t.includes(k));
-            if (activeCategory === 'profesional') return ['abogado', 'arquitect', 'contador', 'médico'].some(k => t.includes(k));
-            if (activeCategory === 'oficio') return ['gasista', 'carpintero', 'albañil', 'electricista', 'plomero'].some(k => t.includes(k));
-            return true;
-        });
-    }, [allPros, activeCategory]);
+    // Filter logic removed because Supabase does it efficiently on the backend!
+    const displayedPros = professionals;
 
     return (
         <div className="pb-24 bg-slate-50 min-h-screen">

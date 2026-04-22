@@ -11,30 +11,18 @@ interface UseProfessionalsResult {
   refetch: () => void;
 }
 
-// Simple in-memory cache
-let cachedProfessionals: ProfessionalDisplay[] | null = null;
-let cacheTimestamp = 0;
-const CACHE_DURATION = 60_000; // 1 minute
+// We remove global caching since fetching is parameterized natively now.
 
-export function useProfessionals(): UseProfessionalsResult {
-  const [professionals, setProfessionals] = useState<ProfessionalDisplay[]>(cachedProfessionals || []);
-  const [isLoading, setIsLoading] = useState(!cachedProfessionals);
+export function useProfessionals(category?: string, searchTerm?: string): UseProfessionalsResult {
+  const [professionals, setProfessionals] = useState<ProfessionalDisplay[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const fetchData = useCallback(async () => {
-    // Use cache if fresh enough
-    if (cachedProfessionals && Date.now() - cacheTimestamp < CACHE_DURATION) {
-      setProfessionals(cachedProfessionals);
-      setIsLoading(false);
-      return;
-    }
-
     setIsLoading(true);
     setError(null);
     try {
-      const data = await getProfessionals();
-      cachedProfessionals = data;
-      cacheTimestamp = Date.now();
+      const data = await getProfessionals({ category, searchTerm });
       setProfessionals(data);
     } catch (err) {
       console.error('Error loading professionals:', err);
@@ -42,15 +30,19 @@ export function useProfessionals(): UseProfessionalsResult {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [category, searchTerm]);
 
   useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+    // Add a small debounce if there is a searchTerm
+    const delay = searchTerm ? 300 : 0;
+    const timeoutId = setTimeout(() => {
+        fetchData();
+    }, delay);
+
+    return () => clearTimeout(timeoutId);
+  }, [fetchData, searchTerm]);
 
   const refetch = useCallback(() => {
-    cachedProfessionals = null;
-    cacheTimestamp = 0;
     fetchData();
   }, [fetchData]);
 
