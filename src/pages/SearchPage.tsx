@@ -6,6 +6,7 @@ import { ProfessionalCard } from '../components/ProfessionalCard';
 import clsx from 'clsx';
 import { useGeoref } from '../hooks/useGeoref';
 import { MAIN_CATEGORIES } from './HomePage';
+import { PROFESSIONS_LIST, SERVICES_LIST, TRADES_LIST, TECNICS_LIST } from './PostPage';
 
 export function SearchPage() {
     const { professionals, isLoading } = useProfessionals();
@@ -55,11 +56,20 @@ export function SearchPage() {
             
         let matchesCategory = true;
         if (activeCategory !== 'todos') {
-            const trade = pro.trade.toLowerCase();
-            if (activeCategory === 'servicio') matchesCategory = ['jardinero', 'limpieza', 'niñera', 'flete', 'paseador'].some(t => trade.includes(t));
-            else if (activeCategory === 'tecnico') matchesCategory = ['aire', 'pc', 'celular', 'electrodomésticos', 'redes', 'cámaras', 'técnico'].some(t => trade.includes(t));
-            else if (activeCategory === 'profesional') matchesCategory = ['abogado', 'contador', 'arquitecto', 'fotógrafo', 'profesor', 'diseñador', 'médico'].some(t => trade.includes(t));
-            else if (activeCategory === 'oficio') matchesCategory = ['albañil', 'electricista', 'gasista', 'plomero', 'carpintero', 'pintor', 'soldador'].some(t => trade.includes(t));
+            const tradeLower = pro.trade.toLowerCase();
+            
+            // Helper function to check if the trade exists in our huge lists (ignoring case)
+            const isInList = (list: string[]) => list.some(item => tradeLower === item.toLowerCase());
+            
+            if (activeCategory === 'servicio') {
+                matchesCategory = isInList(SERVICES_LIST) || ['limpieza', 'flete'].some(t => tradeLower.includes(t));
+            } else if (activeCategory === 'tecnico') {
+                matchesCategory = isInList(TECNICS_LIST) || ['aire', 'pc', 'celular'].some(t => tradeLower.includes(t));
+            } else if (activeCategory === 'profesional') {
+                matchesCategory = isInList(PROFESSIONS_LIST) || ['abogado', 'médico'].some(t => tradeLower.includes(t));
+            } else if (activeCategory === 'oficio') {
+                matchesCategory = isInList(TRADES_LIST) || ['albañil', 'electricista', 'gasista'].some(t => tradeLower.includes(t));
+            }
         }
 
         return matchesSearch && matchesCategory && matchesLocation;
