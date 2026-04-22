@@ -1,7 +1,7 @@
 {
-    "name": "SOYPROFESIONAL - Profesionales cerca tuyo",
-    "short_name": "SOYPROFESIONAL",
-    "description": "Encontrá profesionales de confianza cerca tuyo. Gasistas, plomeros, electricistas y más servicios en tu zona.",
+    "name": "SoyProfesional - Servicios y Oficios",
+    "short_name": "SoyProfesional",
+    "description": "Encuentra profesionales, técnicos y oficios expertos en tu ciudad.",
     "start_url": "/",
     "id": "/",
     "display": "standalone",

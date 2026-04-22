@@ -1,16 +1,29 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="96" fill="#10b981"/>
-  <g transform="translate(256,256)">
-    <!-- Wrench -->
-    <g transform="rotate(-45)">
-      <rect x="-20" y="-120" width="40" height="160" rx="8" fill="white"/>
-      <circle cx="0" cy="-120" r="50" fill="none" stroke="white" stroke-width="24"/>
-      <circle cx="0" cy="-120" r="20" fill="#10b981"/>
-    </g>
-    <!-- House -->
-    <g transform="translate(0, 20)">
-      <polygon points="0,-90 -80,0 -60,0 -60,60 60,60 60,0 80,0" fill="white" opacity="0.9"/>
-      <rect x="-15" y="10" width="30" height="50" rx="4" fill="#10b981"/>
-    </g>
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#10b981" />
+      <stop offset="100%" stop-color="#047857" />
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-opacity="0.15" />
+    </filter>
+  </defs>
+  
+  <!-- Premium Squircle Background -->
+  <rect width="512" height="512" rx="112" fill="url(#bgGrad)" />
+  
+  <!-- Sleek SP Monogram -->
+  <g transform="translate(116, 126)" filter="url(#shadow)" fill="none" stroke="#ffffff" stroke-width="48" stroke-linecap="round" stroke-linejoin="round">
+    <!-- S Shape -->
+    <!-- Starts at top right, curves left and down, then right and down, then left -->
+    <path d="M 180 40 
+             C 120 40, 40 40, 40 100 
+             C 40 160, 180 160, 180 220 
+             C 180 280, 100 280, 40 280" />
+    
+    <!-- P Shape -->
+    <!-- Straight line down for the stem, then the loop of the P -->
+    <path d="M 110 40 L 110 260" />
+    <path d="M 110 40 C 260 40, 260 160, 110 160" />
   </g>
 </svg>
