@@ -2,28 +2,28 @@
   <defs>
     <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#10b981" />
-      <stop offset="100%" stop-color="#047857" />
+      <stop offset="100%" stop-color="#059669" />
     </linearGradient>
-    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
-      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-opacity="0.15" />
+    <filter id="shadow">
+      <feDropShadow dx="0" dy="8" stdDeviation="8" flood-opacity="0.25" />
     </filter>
   </defs>
-  
-  <!-- Premium Squircle Background -->
+
+  <!-- Background -->
   <rect width="512" height="512" rx="112" fill="url(#bgGrad)" />
-  
-  <!-- Sleek SP Monogram -->
-  <g transform="translate(116, 126)" filter="url(#shadow)" fill="none" stroke="#ffffff" stroke-width="48" stroke-linecap="round" stroke-linejoin="round">
-    <!-- S Shape -->
-    <!-- Starts at top right, curves left and down, then right and down, then left -->
-    <path d="M 180 40 
-             C 120 40, 40 40, 40 100 
-             C 40 160, 180 160, 180 220 
-             C 180 280, 100 280, 40 280" />
+
+  <!-- Beautiful Wrench -->
+  <g transform="translate(256, 256) rotate(-45)" filter="url(#shadow)">
+    <!-- Main Handle -->
+    <rect x="-26" y="-80" width="52" height="200" rx="20" fill="white" />
     
-    <!-- P Shape -->
-    <!-- Straight line down for the stem, then the loop of the P -->
-    <path d="M 110 40 L 110 260" />
-    <path d="M 110 40 C 260 40, 260 160, 110 160" />
+    <!-- Top Head -->
+    <circle cx="0" cy="-90" r="64" fill="white" />
+    
+    <!-- Cutout for wrench mouth -->
+    <path d="M -32 -160 L 32 -160 L 32 -80 A 32 32 0 0 1 -32 -80 Z" fill="url(#bgGrad)" />
+    
+    <!-- Bottom Handle Hole -->
+    <circle cx="0" cy="90" r="12" fill="url(#bgGrad)" />
   </g>
 </svg>
