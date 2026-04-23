@@ -1,80 +1,15 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
     ArrowLeft, Star, MessageCircle, UserCheck, Shield,
-    Clock, Bell, Trash2
+    Clock, Bell, Trash2, Loader2
 } from 'lucide-react';
 import clsx from 'clsx';
+import { supabase } from '../lib/supabase';
+import { useAuth } from '../contexts/AuthContext';
+import type { NotificationRow } from '../lib/database.types';
 
-type NotificationType = 'review' | 'contact' | 'follow' | 'verification' | 'system';
-
-interface Notification {
-    id: string;
-    type: NotificationType;
-    title: string;
-    body: string;
-    avatar?: string;
-    time: string;
-    isRead: boolean;
-    actionUrl?: string;
-}
-
-const MOCK_NOTIFICATIONS: Notification[] = [
-    {
-        id: '1',
-        type: 'review',
-        title: 'Nueva reseña ⭐',
-        body: 'María García te dejó una reseña de 5 estrellas: "Excelente profesional, muy puntual"',
-        avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=80&h=80&fit=crop',
-        time: 'Hace 15 min',
-        isRead: false,
-        actionUrl: '/professional/1',
-    },
-    {
-        id: '2',
-        type: 'contact',
-        title: 'Te contactaron por WhatsApp',
-        body: 'Carlos Mendoza vio tu perfil y te contactó por WhatsApp',
-        avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=80&h=80&fit=crop',
-        time: 'Hace 30 min',
-        isRead: false,
-    },
-    {
-        id: '3',
-        type: 'follow',
-        title: 'Nuevo favorito',
-        body: 'Ana Rodríguez agregó tu perfil a sus favoritos',
-        avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=80&h=80&fit=crop',
-        time: 'Hace 2 hs',
-        isRead: false,
-    },
-    {
-        id: '4',
-        type: 'system',
-        title: '¡Bienvenido a SoyProfesional!',
-        body: 'Completá tu perfil para empezar a aparecer en las búsquedas de tu zona.',
-        time: 'Ayer',
-        isRead: true,
-        actionUrl: '/edit-profile',
-    },
-    {
-        id: '5',
-        type: 'review',
-        title: 'Solicitud de reseña',
-        body: 'Pedro Suárez quiere dejarte una reseña por tu trabajo de plomería',
-        avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop',
-        time: 'Hace 5 hs',
-        isRead: true,
-    },
-    {
-        id: '6',
-        type: 'verification',
-        title: 'Verificación pendiente',
-        body: 'Subí una foto de tu matrícula o certificado para verificar tu cuenta.',
-        time: 'Hace 2 días',
-        isRead: true,
-    },
-];
+type NotificationType = NotificationRow['type'];
 
 function getNotificationIcon(type: NotificationType) {
     switch (type) {
@@ -88,32 +23,120 @@ function getNotificationIcon(type: NotificationType) {
 
 type FilterType = 'all' | 'unread';
 
+function formatTimeAgo(dateString: string) {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+
+    if (diffInSeconds < 60) return 'Hace un momento';
+    const diffInMinutes = Math.floor(diffInSeconds / 60);
+    if (diffInMinutes < 60) return `Hace ${diffInMinutes} min`;
+    const diffInHours = Math.floor(diffInMinutes / 60);
+    if (diffInHours < 24) return `Hace ${diffInHours} hs`;
+    const diffInDays = Math.floor(diffInHours / 24);
+    if (diffInDays === 1) return 'Ayer';
+    if (diffInDays < 7) return `Hace ${diffInDays} días`;
+    return date.toLocaleDateString();
+}
+
 export function NotificationsPage() {
     const navigate = useNavigate();
-    const [notifications, setNotifications] = useState(MOCK_NOTIFICATIONS);
+    const { user } = useAuth();
+    const [notifications, setNotifications] = useState<NotificationRow[]>([]);
     const [filter, setFilter] = useState<FilterType>('all');
+    const [loading, setLoading] = useState(true);
 
-    const unreadCount = notifications.filter(n => !n.isRead).length;
+    useEffect(() => {
+        if (!user) return;
+
+        const fetchNotifications = async () => {
+            setLoading(true);
+            const { data, error } = await supabase
+                .from('notifications')
+                .select('*')
+                .eq('user_id', user.id)
+                .order('created_at', { ascending: false });
+
+            if (!error && data) {
+                setNotifications(data);
+            }
+            setLoading(false);
+        };
+
+        fetchNotifications();
+
+        // Subscribe to real-time changes
+        const channel = supabase
+            .channel('notifications_changes')
+            .on(
+                'postgres_changes',
+                {
+                    event: '*',
+                    schema: 'public',
+                    table: 'notifications',
+                    filter: `user_id=eq.${user.id}`,
+                },
+                (payload) => {
+                    if (payload.eventType === 'INSERT') {
+                        setNotifications(prev => [payload.new as NotificationRow, ...prev]);
+                    } else if (payload.eventType === 'UPDATE') {
+                        setNotifications(prev => prev.map(n => n.id === payload.new.id ? payload.new as NotificationRow : n));
+                    } else if (payload.eventType === 'DELETE') {
+                        setNotifications(prev => prev.filter(n => n.id !== payload.old.id));
+                    }
+                }
+            )
+            .subscribe();
+
+        return () => {
+            supabase.removeChannel(channel);
+        };
+    }, [user]);
+
+    const unreadCount = notifications.filter(n => !n.is_read).length;
     const filtered = filter === 'unread'
-        ? notifications.filter(n => !n.isRead)
+        ? notifications.filter(n => !n.is_read)
         : notifications;
 
-    const markAllRead = () => {
-        setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
+    const markAllRead = async () => {
+        if (!user) return;
+        
+        // Optimistic update
+        setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
+        
+        await supabase
+            .from('notifications')
+            .update({ is_read: true })
+            .eq('user_id', user.id)
+            .eq('is_read', false);
     };
 
-    const markAsRead = (id: string) => {
-        setNotifications(prev => prev.map(n => n.id === id ? { ...n, isRead: true } : n));
+    const markAsRead = async (id: string) => {
+        // Optimistic update
+        setNotifications(prev => prev.map(n => n.id === id ? { ...n, is_read: true } : n));
+        
+        await supabase
+            .from('notifications')
+            .update({ is_read: true })
+            .eq('id', id);
     };
 
-    const removeNotification = (id: string) => {
+    const removeNotification = async (id: string) => {
+        // Optimistic update
         setNotifications(prev => prev.filter(n => n.id !== id));
+        
+        await supabase
+            .from('notifications')
+            .delete()
+            .eq('id', id);
     };
 
-    const handleNotificationClick = (notif: Notification) => {
-        markAsRead(notif.id);
-        if (notif.actionUrl) {
-            navigate(notif.actionUrl);
+    const handleNotificationClick = (notif: NotificationRow) => {
+        if (!notif.is_read) {
+            markAsRead(notif.id);
+        }
+        if (notif.action_url) {
+            navigate(notif.action_url);
         }
     };
 
@@ -180,7 +203,11 @@ export function NotificationsPage() {
 
             {/* Notifications List */}
             <div className="flex-1">
-                {filtered.length === 0 ? (
+                {loading ? (
+                    <div className="flex justify-center py-20">
+                        <Loader2 className="animate-spin text-emerald-500" size={32} />
+                    </div>
+                ) : filtered.length === 0 ? (
                     <div className="flex flex-col items-center justify-center text-center py-20 px-6">
                         <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mb-4">
                             <Bell size={32} className="text-slate-300" />
@@ -201,11 +228,11 @@ export function NotificationsPage() {
                                     key={notif.id}
                                     className={clsx(
                                         "flex gap-3 px-4 py-4 transition-colors cursor-pointer relative group",
-                                        !notif.isRead ? "bg-emerald-50/50" : "bg-white hover:bg-slate-50"
+                                        !notif.is_read ? "bg-emerald-50/50" : "bg-white hover:bg-slate-50"
                                     )}
                                     onClick={() => handleNotificationClick(notif)}
                                 >
-                                    {!notif.isRead && (
+                                    {!notif.is_read && (
                                         <div className="absolute left-1.5 top-1/2 -translate-y-1/2 w-2 h-2 bg-emerald-500 rounded-full" />
                                     )}
 
@@ -215,7 +242,7 @@ export function NotificationsPage() {
                                                 <img
                                                     src={notif.avatar}
                                                     alt=""
-                                                    className="w-12 h-12 rounded-full object-cover"
+                                                    className="w-12 h-12 rounded-full object-cover bg-slate-100"
                                                 />
                                                 <div className={clsx(
                                                     "absolute -bottom-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center border-2 border-white",
@@ -238,20 +265,20 @@ export function NotificationsPage() {
                                         <div className="flex items-start justify-between gap-2">
                                             <h3 className={clsx(
                                                 "text-sm leading-tight",
-                                                !notif.isRead ? "font-bold text-slate-900" : "font-semibold text-slate-700"
+                                                !notif.is_read ? "font-bold text-slate-900" : "font-semibold text-slate-700"
                                             )}>
                                                 {notif.title}
                                             </h3>
                                             <div className="flex items-center gap-1 shrink-0">
-                                                <span className="text-[10px] text-slate-400 font-medium flex items-center gap-1">
+                                                <span className="text-[10px] text-slate-400 font-medium flex items-center gap-1 whitespace-nowrap">
                                                     <Clock size={10} />
-                                                    {notif.time}
+                                                    {formatTimeAgo(notif.created_at)}
                                                 </span>
                                             </div>
                                         </div>
                                         <p className={clsx(
                                             "text-xs mt-0.5 leading-relaxed line-clamp-2",
-                                            !notif.isRead ? "text-slate-600" : "text-slate-500"
+                                            !notif.is_read ? "text-slate-600" : "text-slate-500"
                                         )}>
                                             {notif.body}
                                         </p>

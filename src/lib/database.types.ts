@@ -215,6 +215,38 @@ export interface Database {
           last_message_at?: string | null
         }
       }
+      notifications: {
+        Row: {
+          id: string
+          user_id: string
+          type: 'review' | 'contact' | 'follow' | 'verification' | 'system'
+          title: string
+          body: string
+          avatar: string | null
+          action_url: string | null
+          is_read: boolean
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          type: 'review' | 'contact' | 'follow' | 'verification' | 'system'
+          title: string
+          body: string
+          avatar?: string | null
+          action_url?: string | null
+          is_read?: boolean
+          created_at?: string
+        }
+        Update: {
+          type?: 'review' | 'contact' | 'follow' | 'verification' | 'system'
+          title?: string
+          body?: string
+          avatar?: string | null
+          action_url?: string | null
+          is_read?: boolean
+        }
+      }
     }
   }
 }
@@ -226,6 +258,7 @@ export type Review = Database['public']['Tables']['reviews']['Row'];
 export type PortfolioItem = Database['public']['Tables']['portfolio_items']['Row'];
 export type Message = Database['public']['Tables']['messages']['Row'];
 export type Conversation = Database['public']['Tables']['conversations']['Row'];
+export type NotificationRow = Database['public']['Tables']['notifications']['Row'];
 
 // Combined types (for JOINs)
 export interface ProfessionalWithProfile extends Professional {
