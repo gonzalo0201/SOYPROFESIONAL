@@ -1,5 +1,5 @@
 import { Link, useNavigate } from 'react-router-dom';
-import { User, ChevronRight, LogOut, Loader2, Bell, BellOff, HelpCircle, FileText, Info, Zap } from 'lucide-react';
+import { User, ChevronRight, LogOut, Loader2, Bell, BellOff, HelpCircle, FileText, Info, Zap, Wrench } from 'lucide-react';
 import { useNotifications } from '../contexts/NotificationContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useEffect, useState } from 'react';
@@ -97,8 +97,8 @@ export function ProfilePage() {
                                 to="/edit-professional"
                                 className="w-full flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white py-2.5 rounded-xl text-sm font-bold transition-colors shadow-md shadow-emerald-500/20 active:scale-[0.98]"
                             >
-                                <Zap size={16} />
-                                Mi profesión / Anuncio
+                                <Wrench size={16} />
+                                Mi profesión
                             </Link>
                         )}
                         

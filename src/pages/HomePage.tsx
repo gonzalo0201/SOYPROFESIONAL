@@ -21,10 +21,10 @@ export function HomePage() {
     const [locationInput, setLocationInput] = useState('');
     const [searchInput, setSearchInput] = useState('');
     
-    // Active category filter on the Home page itself
-    const [activeCategory, setActiveCategory] = useState<string>('todos');
+    // Active categories filter (multi-select)
+    const [activeCategories, setActiveCategories] = useState<string[]>(['servicio', 'tecnico', 'profesional', 'oficio']);
 
-    const { professionals } = useProfessionals(activeCategory === 'todos' ? undefined : activeCategory);
+    const { professionals } = useProfessionals(activeCategories);
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
@@ -118,32 +118,41 @@ export function HomePage() {
             </div>
 
             <div className="px-4 -mt-6 relative z-20">
-                {/* Categories Live Filter */}
-                <div className="bg-white rounded-3xl p-4 shadow-sm border border-slate-100 mb-8 mt-4 overflow-x-auto scrollbar-hide">
-                    <div className="flex gap-4 w-max px-2">
-                        {MAIN_CATEGORIES.map((cat) => (
-                            <button
-                                key={cat.id}
-                                onClick={() => setActiveCategory(activeCategory === cat.id ? 'todos' : cat.id)}
-                                className={clsx(
-                                    "flex flex-col items-center gap-2 group outline-none min-w-[72px] transition-all",
-                                    activeCategory === cat.id ? "scale-105" : "opacity-70 hover:opacity-100"
-                                )}
-                            >
-                                <div className={clsx(
-                                    "w-14 h-14 rounded-2xl flex items-center justify-center text-white transition-all",
-                                    activeCategory === cat.id ? `${cat.color} shadow-lg shadow-emerald-900/20 ring-4 ring-emerald-50` : "bg-slate-200 text-slate-500"
-                                )}>
-                                    <cat.icon size={activeCategory === cat.id ? 26 : 22} strokeWidth={2} />
-                                </div>
-                                <span className={clsx(
-                                    "text-[10px] uppercase tracking-wide text-center transition-colors",
-                                    activeCategory === cat.id ? "font-black text-slate-800" : "font-bold text-slate-500"
-                                )}>
-                                    {cat.label}
-                                </span>
-                            </button>
-                        ))}
+                {/* Categories Live Filter - Multi select */}
+                <div className="bg-white rounded-3xl p-4 shadow-sm border border-slate-100 mb-8 mt-4">
+                    <div className="flex justify-between w-full px-1">
+                        {MAIN_CATEGORIES.map((cat) => {
+                            const isActive = activeCategories.includes(cat.id);
+                            return (
+                                <button
+                                    key={cat.id}
+                                    onClick={() => {
+                                        setActiveCategories(prev => 
+                                            isActive 
+                                                ? prev.filter(c => c !== cat.id)
+                                                : [...prev, cat.id]
+                                        );
+                                    }}
+                                    className={clsx(
+                                        "flex flex-col items-center gap-2 group outline-none transition-all",
+                                        isActive ? "scale-105" : "opacity-60 hover:opacity-100 grayscale-[50%]"
+                                    )}
+                                >
+                                    <div className={clsx(
+                                        "w-14 h-14 rounded-2xl flex items-center justify-center text-white transition-all",
+                                        isActive ? `${cat.color} shadow-lg shadow-emerald-900/20 ring-4 ring-emerald-50` : "bg-slate-200 text-slate-400"
+                                    )}>
+                                        <cat.icon size={isActive ? 26 : 22} strokeWidth={2} />
+                                    </div>
+                                    <span className={clsx(
+                                        "text-[10px] uppercase tracking-wide text-center transition-colors",
+                                        isActive ? "font-black text-slate-800" : "font-bold text-slate-400"
+                                    )}>
+                                        {cat.label}
+                                    </span>
+                                </button>
+                            );
+                        })}
                     </div>
                 </div>
 
@@ -151,7 +160,7 @@ export function HomePage() {
                 <div className="mb-4 px-1">
                     <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2">
                         <CheckCircle size={18} className="text-emerald-500" />
-                        {activeCategory === 'todos' ? 'Todos los anunciantes' : `Resultados: ${MAIN_CATEGORIES.find(c => c.id === activeCategory)?.label}`}
+                        {activeCategories.length === 4 ? 'Todos los anunciantes' : `Opciones seleccionadas: ${activeCategories.length}`}
                         <span className="text-xs font-normal text-slate-400 ml-auto">({displayedPros.length})</span>
                     </h2>
                 </div>

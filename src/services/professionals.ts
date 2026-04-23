@@ -43,7 +43,7 @@ function toDisplay(pro: ProfessionalWithProfile): ProfessionalDisplay {
 }
 
 export async function getProfessionals(options?: {
-  category?: string;
+  categories?: string[];
   searchTerm?: string;
   limit?: number;
 }): Promise<ProfessionalDisplay[]> {
@@ -63,16 +63,17 @@ export async function getProfessionals(options?: {
     query = query.or(`trade.ilike.${s},description.ilike.${s}`);
   }
 
-  // Apply Category Filter
-  if (options?.category && options.category !== 'todos') {
+  // Apply Multiple Categories Filter
+  if (options?.categories && options.categories.length > 0) {
+    // If all 4 are selected, it's essentially "todos", but we can still natively filter
     let allowedTrades: string[] = [];
-    if (options.category === 'servicio') allowedTrades = SERVICES_LIST;
-    else if (options.category === 'tecnico') allowedTrades = TECNICS_LIST;
-    else if (options.category === 'profesional') allowedTrades = PROFESSIONS_LIST;
-    else if (options.category === 'oficio') allowedTrades = TRADES_LIST;
+    if (options.categories.includes('servicio')) allowedTrades.push(...SERVICES_LIST);
+    if (options.categories.includes('tecnico')) allowedTrades.push(...TECNICS_LIST);
+    if (options.categories.includes('profesional')) allowedTrades.push(...PROFESSIONS_LIST);
+    if (options.categories.includes('oficio')) allowedTrades.push(...TRADES_LIST);
 
     if (allowedTrades.length > 0) {
-      // In Postgrest, we can use the `in` filter
+      // Find matching items via 'in'
       query = query.in('trade', allowedTrades);
     }
   }

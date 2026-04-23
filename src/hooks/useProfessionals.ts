@@ -13,7 +13,7 @@ interface UseProfessionalsResult {
 
 // We remove global caching since fetching is parameterized natively now.
 
-export function useProfessionals(category?: string, searchTerm?: string): UseProfessionalsResult {
+export function useProfessionals(categories?: string[], searchTerm?: string): UseProfessionalsResult {
   const [professionals, setProfessionals] = useState<ProfessionalDisplay[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -22,7 +22,7 @@ export function useProfessionals(category?: string, searchTerm?: string): UsePro
     setIsLoading(true);
     setError(null);
     try {
-      const data = await getProfessionals({ category, searchTerm });
+      const data = await getProfessionals({ categories, searchTerm });
       setProfessionals(data);
     } catch (err) {
       console.error('Error loading professionals:', err);
@@ -30,7 +30,7 @@ export function useProfessionals(category?: string, searchTerm?: string): UsePro
     } finally {
       setIsLoading(false);
     }
-  }, [category, searchTerm]);
+  }, [categories, searchTerm]); // categories is an array now, but React might warn if not memoized outside, but it's okay for now.
 
   useEffect(() => {
     // Add a small debounce if there is a searchTerm

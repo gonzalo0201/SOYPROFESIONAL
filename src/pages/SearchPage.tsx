@@ -25,7 +25,7 @@ export function SearchPage() {
     const [activeCategory, setActiveCategory] = useState(getInitialCategory());
 
     const { professionals: filteredPros, isLoading } = useProfessionals(
-        activeCategory === 'todos' ? undefined : activeCategory,
+        activeCategory === 'todos' ? undefined : [activeCategory],
         searchTerm || undefined
     );
 
