@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeft, Camera, X, Instagram, Facebook, Smartphone, Loader2, Save } from 'lucide-react';
+import { ArrowLeft, Camera, X, Instagram, Facebook, Smartphone, Loader2, Save, Plus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import clsx from 'clsx';
 import { MAIN_CATEGORIES } from './HomePage';
@@ -28,7 +28,8 @@ export function EditProfessionalPage() {
     const [trade, setTrade] = useState<string>('');
     const [customTrade, setCustomTrade] = useState<string>('');
     const [description, setDescription] = useState('');
-    const [skillsString, setSkillsString] = useState('');
+    const [tags, setTags] = useState<string[]>([]);
+    const [newTag, setNewTag] = useState('');
     
     // Contact & Social
     const [whatsapp, setWhatsapp] = useState('');
@@ -68,7 +69,7 @@ export function EditProfessionalPage() {
                 setProfessionalId(pro.id);
                 setTrade(pro.trade);
                 setDescription(pro.description || '');
-                setSkillsString(pro.skills ? pro.skills.join(', ') : '');
+                setTags(pro.skills || []);
                 
                 setCategory(pro.category || '');
                 if (pro.social_links) {
@@ -136,6 +137,17 @@ export function EditProfessionalPage() {
         setPreviewUrls(prev => prev.filter((_, i) => i !== index));
     };
 
+    const addTag = (tag: string) => {
+        const trimmed = tag.trim();
+        if (!trimmed || tags.includes(trimmed)) return;
+        setTags(prev => [...prev, trimmed]);
+        setNewTag('');
+    };
+
+    const removeTag = (tag: string) => {
+        setTags(prev => prev.filter(t => t !== tag));
+    };
+
     const handleSave = async () => {
         if (!professionalId || !user) return;
         
@@ -190,12 +202,8 @@ export function EditProfessionalPage() {
                 }
             }
 
-            // Clean skills
-            const cleanSkills = skillsString
-                .split(',')
-                .map(s => s.trim())
-                .filter(s => s.length > 0)
-                .slice(0, 8);
+            // Use tags directly, cap to 8
+            const cleanSkills = tags.slice(0, 8);
 
             // Update profile info
             const updates = {
@@ -372,15 +380,49 @@ export function EditProfessionalPage() {
                     </div>
 
                     <div>
-                        <label className="block text-sm font-bold text-slate-700 mb-2">Especialidades (Tags)</label>
-                        <input
-                            type="text"
-                            value={skillsString}
-                            onChange={(e) => setSkillsString(e.target.value)}
-                            placeholder="Ej: A domicilio, Urgencias 24hs, Presupuesto sin cargo..."
-                            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
-                        />
-                        <p className="text-xs text-slate-400 mt-1">Separadas por comas. Máximo 8 etiquetas.</p>
+                        <label className="block text-sm font-bold text-slate-700 mb-2">
+                            Actividades / Tags <span className="text-slate-400 font-normal text-xs">({tags.length})</span>
+                        </label>
+                        <p className="text-xs text-slate-500 mb-3">Agregá tags para que los clientes te encuentren más fácil al buscar.</p>
+
+                        {/* Current Tags */}
+                        {tags.length > 0 && (
+                            <div className="flex flex-wrap gap-2 mb-3">
+                                {tags.map(tag => (
+                                    <span key={tag} className="bg-emerald-50 text-emerald-700 text-xs font-bold px-3 py-1.5 rounded-lg border border-emerald-100 flex items-center gap-1.5">
+                                        {tag}
+                                        <button onClick={() => removeTag(tag)} className="text-emerald-400 hover:text-red-500 transition-colors">
+                                            <X size={12} />
+                                        </button>
+                                    </span>
+                                ))}
+                            </div>
+                        )}
+
+                        {/* Add Tag Input */}
+                        <div className="flex gap-2">
+                            <input
+                                type="text"
+                                value={newTag}
+                                onChange={(e) => setNewTag(e.target.value)}
+                                onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addTag(newTag))}
+                                placeholder="Ej: Corte de césped, A domicilio..."
+                                className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all font-medium text-sm"
+                            />
+                            <button
+                                onClick={() => addTag(newTag)}
+                                disabled={!newTag.trim()}
+                                className={clsx(
+                                    "p-3 rounded-xl transition-all",
+                                    newTag.trim()
+                                        ? "bg-emerald-500 text-white hover:bg-emerald-600 shadow-md"
+                                        : "bg-slate-100 text-slate-300 cursor-not-allowed"
+                                )}
+                            >
+                                <Plus size={20} />
+                            </button>
+                        </div>
+                        <p className="text-xs text-slate-400 mt-2">Presioná Enter o el botón + para agregar el tag. (Máximo 8)</p>
                     </div>
                 </div>
 

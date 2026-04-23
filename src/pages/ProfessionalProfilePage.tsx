@@ -159,9 +159,22 @@ export function ProfessionalProfilePage() {
                 {/* Description */}
                 <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
                     <h2 className="font-bold text-slate-900 text-sm mb-3">Descripción</h2>
-                    <p className="text-sm text-slate-600 leading-relaxed">
+                    <p className="text-sm text-slate-600 leading-relaxed whitespace-pre-wrap">
                         {professional.description}
                     </p>
+                    
+                    {professional.skills && professional.skills.length > 0 && (
+                        <div className="mt-4 pt-4 border-t border-slate-100">
+                            <h3 className="text-[11px] font-black text-slate-400 mb-2 uppercase tracking-wider flex items-center gap-1">Especialidades</h3>
+                            <div className="flex flex-wrap gap-2">
+                                {professional.skills.map((skill, idx) => (
+                                    <span key={idx} className="bg-emerald-50 text-emerald-700 text-xs font-bold px-3 py-1.5 rounded-lg border border-emerald-100 inline-block">
+                                        {skill}
+                                    </span>
+                                ))}
+                            </div>
+                        </div>
+                    )}
                 </div>
 
                 {/* Contact Card */}
