@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useProfessional } from '../hooks/useProfessionals';
 import { useSupabaseReviews } from '../hooks/useSupabaseReviews';
 import { useSupabasePortfolio } from '../hooks/useSupabasePortfolio';
+import { PROFESSIONS_LIST, SERVICES_LIST, TRADES_LIST, TECNICS_LIST } from './PostPage';
 import clsx from 'clsx';
 
 export function ProfessionalProfilePage() {
@@ -67,6 +68,14 @@ export function ProfessionalProfilePage() {
     // All images for carousel (Header Avatar first, then portfolio)
     const carouselImages = [professional.image, ...allPhotos];
 
+    const getCategoryLabel = (trade: string) => {
+        if (PROFESSIONS_LIST.includes(trade)) return 'Profesional';
+        if (SERVICES_LIST.includes(trade)) return 'Servicio';
+        if (TRADES_LIST.includes(trade)) return 'Oficio';
+        if (TECNICS_LIST.includes(trade)) return 'Técnico';
+        return 'Independiente';
+    };
+
     const openViewer = (index: number) => {
         setViewerIndex(index);
         setViewerOpen(true);
@@ -128,7 +137,7 @@ export function ProfessionalProfilePage() {
                     {/* Chips */}
                     <div className="flex flex-wrap items-center gap-2 mb-3">
                         <span className="bg-slate-700 text-white text-[11px] font-bold px-2.5 py-1 rounded-full">
-                            Técnico
+                            {getCategoryLabel(professional.trade)}
                         </span>
                         <span className="bg-white border border-slate-200 text-slate-700 text-[11px] font-bold px-2.5 py-1 rounded-full flex items-center gap-1">
                             <Briefcase size={12} /> {professional.trade}
@@ -282,14 +291,14 @@ export function ProfessionalProfilePage() {
                     
                     <button 
                         onClick={prevImage}
-                        className="absolute left-4 top-1/2 -translate-y-1/2 z-50 p-3 bg-white/10 rounded-full text-white hover:bg-white/20 transition-all focus:outline-none"
+                        className="absolute left-4 top-1/2 -translate-y-1/2 z-50 p-3 bg-black/50 rounded-full text-white hover:bg-black/80 transition-all focus:outline-none"
                     >
                         <ChevronLeft size={28} />
                     </button>
                     
                     <button 
                         onClick={nextImage}
-                        className="absolute right-4 top-1/2 -translate-y-1/2 z-50 p-3 bg-white/10 rounded-full text-white hover:bg-white/20 transition-all focus:outline-none"
+                        className="absolute right-4 top-1/2 -translate-y-1/2 z-50 p-3 bg-black/50 rounded-full text-white hover:bg-black/80 transition-all focus:outline-none"
                     >
                         <ChevronRight size={28} />
                     </button>
