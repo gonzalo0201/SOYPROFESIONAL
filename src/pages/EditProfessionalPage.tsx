@@ -282,7 +282,11 @@ export function EditProfessionalPage() {
                         <div className="relative">
                             <select
                                 value={category}
-                                onChange={(e) => setCategory(e.target.value)}
+                                onChange={(e) => {
+                                    setCategory(e.target.value);
+                                    setTrade('');
+                                    setCustomTrade('');
+                                }}
                                 className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all appearance-none"
                             >
                                 <option value="">Selecciona para ver la lista de despliegue...</option>
@@ -294,6 +298,9 @@ export function EditProfessionalPage() {
                                 <ArrowLeft size={16} className="text-slate-400 -rotate-90" />
                             </div>
                         </div>
+                        <p className="text-xs text-slate-500 mt-2">
+                            Al cambiar la categoría inicial, se borrará tu título actual y deberás seleccionar uno nuevo de la lista de abajo para guardar los cambios.
+                        </p>
                     </div>
 
                     <div>

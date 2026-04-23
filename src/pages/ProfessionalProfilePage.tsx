@@ -1,5 +1,6 @@
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Star, MapPin, Share2, Heart, Clock, Briefcase, Loader2, User, Mail, MessageCircle, Instagram, Facebook } from 'lucide-react';
+import { ArrowLeft, Star, MapPin, Share2, Heart, Clock, Briefcase, Loader2, User, Mail, MessageCircle, Instagram, Facebook, X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { useState } from 'react';
 import { useProfessional } from '../hooks/useProfessionals';
 import { useSupabaseReviews } from '../hooks/useSupabaseReviews';
 import { useSupabasePortfolio } from '../hooks/useSupabasePortfolio';
@@ -11,6 +12,10 @@ export function ProfessionalProfilePage() {
     const { professional, isLoading: proLoading } = useProfessional(id);
     const { reviews, isLoading: reviewsLoading } = useSupabaseReviews(id);
     const { portfolio, isLoading: portfolioLoading } = useSupabasePortfolio(id);
+
+    // Fullscreen Gallery Viewer State
+    const [viewerOpen, setViewerOpen] = useState(false);
+    const [viewerIndex, setViewerIndex] = useState(0);
 
     if (proLoading) {
         return (
@@ -57,7 +62,26 @@ export function ProfessionalProfilePage() {
     };
 
     // Flatten portfolio images and limit to 10
+    // Flatten portfolio images and limit to 10
     const allPhotos = portfolio.flatMap(p => p.images).slice(0, 10);
+    // All images for carousel (Header Avatar first, then portfolio)
+    const carouselImages = [professional.image, ...allPhotos];
+
+    const openViewer = (index: number) => {
+        setViewerIndex(index);
+        setViewerOpen(true);
+    };
+
+    const nextImage = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        setViewerIndex((prev) => (prev + 1) % carouselImages.length);
+    };
+
+    const prevImage = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        setViewerIndex((prev) => (prev - 1 + carouselImages.length) % carouselImages.length);
+    };
+
     const socialLinks = professional.socialLinks || {};
     const whatsappNumber = socialLinks.whatsapp || "No disponible";
 
@@ -71,7 +95,10 @@ export function ProfessionalProfilePage() {
     return (
         <div className="bg-slate-50 min-h-screen pb-28">
             {/* Hero Banner with Main Photo */}
-            <div className="relative h-64 w-full bg-slate-900 overflow-hidden">
+            <div 
+                className="relative h-64 w-full bg-slate-900 overflow-hidden cursor-pointer"
+                onClick={() => openViewer(0)}
+            >
                 <img 
                     src={professional.image} 
                     alt={professional.name} 
@@ -191,7 +218,7 @@ export function ProfessionalProfilePage() {
 
                 {/* Gallery (Max 10) */}
                 <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
-                    <h2 className="font-bold text-slate-900 text-sm mb-4">Trabajos realizados ({allPhotos.length})</h2>
+                    <h2 className="font-bold text-slate-900 text-sm mb-4">Galería ({allPhotos.length})</h2>
                     {portfolioLoading ? (
                         <div className="flex items-center justify-center py-6">
                             <Loader2 size={24} className="text-emerald-500 animate-spin" />
@@ -199,7 +226,11 @@ export function ProfessionalProfilePage() {
                     ) : allPhotos.length > 0 ? (
                         <div className="grid grid-cols-2 gap-2">
                             {allPhotos.map((img, idx) => (
-                                <div key={idx} className="aspect-square rounded-xl overflow-hidden bg-slate-100">
+                                <div 
+                                    key={idx} 
+                                    className="aspect-square rounded-xl overflow-hidden bg-slate-100 cursor-pointer"
+                                    onClick={() => openViewer(idx + 1)}
+                                >
                                     <img src={img} alt="Trabajo" className="w-full h-full object-cover hover:scale-105 transition-transform" />
                                 </div>
                             ))}
@@ -238,6 +269,47 @@ export function ProfessionalProfilePage() {
                     )}
                 </div>
             </div>
+            
+            {/* Fullscreen Gallery Viewer */}
+            {viewerOpen && (
+                <div className="fixed inset-0 z-[100] bg-black/95 flex flex-col items-center justify-center backdrop-blur-xl">
+                    <button 
+                        onClick={() => setViewerOpen(false)}
+                        className="absolute top-6 left-4 z-50 p-2 bg-white/10 rounded-full text-white hover:bg-white/20 transition-all"
+                    >
+                        <ArrowLeft size={24} />
+                    </button>
+                    
+                    <button 
+                        onClick={prevImage}
+                        className="absolute left-4 top-1/2 -translate-y-1/2 z-50 p-3 bg-white/10 rounded-full text-white hover:bg-white/20 transition-all focus:outline-none"
+                    >
+                        <ChevronLeft size={28} />
+                    </button>
+                    
+                    <button 
+                        onClick={nextImage}
+                        className="absolute right-4 top-1/2 -translate-y-1/2 z-50 p-3 bg-white/10 rounded-full text-white hover:bg-white/20 transition-all focus:outline-none"
+                    >
+                        <ChevronRight size={28} />
+                    </button>
+                    
+                    <div className="w-full max-w-2xl px-4 flex items-center justify-center relative">
+                        <img 
+                            src={carouselImages[viewerIndex]} 
+                            alt="Galería ampliada"
+                            className="max-w-full max-h-[80vh] object-contain rounded-lg shadow-2xl brightness-110"
+                            onClick={(e) => e.stopPropagation()}
+                        />
+                    </div>
+                    
+                    <div className="absolute bottom-10 left-0 right-0 text-center">
+                        <p className="text-white/80 font-medium tracking-widest text-sm">
+                            {viewerIndex + 1} / {carouselImages.length}
+                        </p>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
