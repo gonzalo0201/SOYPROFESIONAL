@@ -1,29 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <defs>
-    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#10b981" />
-      <stop offset="100%" stop-color="#059669" />
-    </linearGradient>
-    <filter id="shadow">
-      <feDropShadow dx="0" dy="8" stdDeviation="8" flood-opacity="0.25" />
-    </filter>
-  </defs>
+  <!-- Background: squircle shape, using tailwind emerald-500 #10b981 -->
+  <!-- We use rx for rounded corners; typical android adaptive icon corner radius is quite large -->
+  <rect width="512" height="512" rx="140" fill="#10b981" />
 
-  <!-- Background -->
-  <rect width="512" height="512" rx="112" fill="url(#bgGrad)" />
-
-  <!-- Beautiful Wrench -->
-  <g transform="translate(256, 256) rotate(-45)" filter="url(#shadow)">
-    <!-- Main Handle -->
-    <rect x="-26" y="-80" width="52" height="200" rx="20" fill="white" />
-    
-    <!-- Top Head -->
-    <circle cx="0" cy="-90" r="64" fill="white" />
-    
-    <!-- Cutout for wrench mouth -->
-    <path d="M -32 -160 L 32 -160 L 32 -80 A 32 32 0 0 1 -32 -80 Z" fill="url(#bgGrad)" />
-    
-    <!-- Bottom Handle Hole -->
-    <circle cx="0" cy="90" r="12" fill="url(#bgGrad)" />
-  </g>
+  <!-- White Wrench Icon, center aligned. stroke-width determines thickness -->
+  <svg x="128" y="128" width="256" height="256" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+  </svg>
 </svg>

@@ -71,8 +71,8 @@ export function LoginPage() {
             <div className="relative z-10 flex-1 flex flex-col px-6 pt-16 pb-8">
                 {/* Logo & Welcome */}
                 <div className="text-center mb-10">
-                    <div className="w-16 h-16 bg-emerald-500 rounded-2xl flex items-center justify-center mx-auto mb-5 shadow-lg shadow-emerald-500/30 rotate-3">
-                        <Wrench size={28} className="text-white -rotate-3" />
+                    <div className="w-20 h-20 bg-emerald-500 rounded-[1.75rem] flex items-center justify-center mx-auto mb-5 shadow-lg shadow-emerald-500/20">
+                        <Wrench size={36} className="text-white" strokeWidth={2.5} />
                     </div>
                     <h1 className="text-3xl font-extrabold text-white mb-2">
                         {mode === 'login' ? 'Bienvenido' : 'Creá tu cuenta'}
