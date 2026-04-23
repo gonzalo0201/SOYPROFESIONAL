@@ -51,6 +51,7 @@ export interface Database {
           id: string
           profile_id: string
           trade: string
+          category: string
           description: string
           skills: string[]
           rating: number
@@ -68,6 +69,7 @@ export interface Database {
           id?: string
           profile_id: string
           trade: string
+          category: string
           description?: string
           skills?: string[]
           rating?: number
@@ -83,6 +85,7 @@ export interface Database {
         }
         Update: {
           trade?: string
+          category?: string
           description?: string
           skills?: string[]
           rating?: number

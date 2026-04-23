@@ -18,6 +18,7 @@ CREATE TABLE IF NOT EXISTS public.professionals (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   profile_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL,
   trade TEXT NOT NULL,
+  category TEXT NOT NULL DEFAULT 'profesional' CHECK (category IN ('profesional', 'servicio', 'tecnico', 'oficio')),
   description TEXT NOT NULL DEFAULT '',
   skills TEXT[] NOT NULL DEFAULT '{}',
   rating NUMERIC(2,1) NOT NULL DEFAULT 0,

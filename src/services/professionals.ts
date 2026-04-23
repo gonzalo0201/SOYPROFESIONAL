@@ -1,12 +1,11 @@
 import { supabase } from '../lib/supabase';
 import type { ProfessionalWithProfile } from '../lib/database.types';
-import { PROFESSIONS_LIST, SERVICES_LIST, TRADES_LIST, TECNICS_LIST } from '../pages/PostPage';
-
 // Backward-compatible type that matches what the UI expects
 export interface ProfessionalDisplay {
   id: string;
   name: string;
   trade: string;
+  category: string;
   rating: number;
   reviews: number;
   lat: number;
@@ -27,6 +26,7 @@ function toDisplay(pro: ProfessionalWithProfile): ProfessionalDisplay {
     id: pro.id,
     name: pro.profiles?.name || 'Profesional',
     trade: pro.trade,
+    category: pro.category,
     rating: pro.rating,
     reviews: pro.review_count,
     lat: pro.lat,
@@ -65,17 +65,7 @@ export async function getProfessionals(options?: {
 
   // Apply Multiple Categories Filter
   if (options?.categories && options.categories.length > 0) {
-    // If all 4 are selected, it's essentially "todos", but we can still natively filter
-    let allowedTrades: string[] = [];
-    if (options.categories.includes('servicio')) allowedTrades.push(...SERVICES_LIST);
-    if (options.categories.includes('tecnico')) allowedTrades.push(...TECNICS_LIST);
-    if (options.categories.includes('profesional')) allowedTrades.push(...PROFESSIONS_LIST);
-    if (options.categories.includes('oficio')) allowedTrades.push(...TRADES_LIST);
-
-    if (allowedTrades.length > 0) {
-      // Find matching items via 'in'
-      query = query.in('trade', allowedTrades);
-    }
+    query = query.in('category', options.categories);
   }
 
   const { data, error } = await query;
@@ -136,6 +126,7 @@ export async function updateProfessionalProfile(
   professionalId: string,
   updates: {
     trade?: string;
+    category?: string;
     description?: string;
     skills?: string[];
     status?: string;
@@ -175,6 +166,7 @@ export async function setProfessionalBoosted(profileId: string) {
 export async function createProfessional(data: {
   profile_id: string;
   trade: string;
+  category: string;
   description: string;
   skills: string[];
   lat: number;
@@ -187,6 +179,7 @@ export async function createProfessional(data: {
       {
         profile_id: data.profile_id,
         trade: data.trade,
+        category: data.category,
         description: data.description,
         skills: data.skills,
         lat: data.lat,

@@ -70,13 +70,7 @@ export function EditProfessionalPage() {
                 setDescription(pro.description || '');
                 setSkillsString(pro.skills ? pro.skills.join(', ') : '');
                 
-                // Set initial category loosely based on trade presence (optional)
-                if (PROFESSIONS_LIST.includes(pro.trade)) setCategory('profesional');
-                else if (SERVICES_LIST.includes(pro.trade)) setCategory('servicio');
-                else if (TRADES_LIST.includes(pro.trade)) setCategory('oficio');
-                else if (TECNICS_LIST.includes(pro.trade)) setCategory('tecnico');
-                else setCategory('');
-
+                setCategory(pro.category || '');
                 if (pro.social_links) {
                     const social = pro.social_links;
                     setWhatsapp(social.whatsapp || '');
@@ -206,6 +200,7 @@ export function EditProfessionalPage() {
             // Update profile info
             const updates = {
                 trade: finalTrade,
+                category: category || 'profesional',
                 description,
                 skills: cleanSkills,
                 social_links: {

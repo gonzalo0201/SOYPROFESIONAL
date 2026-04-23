@@ -96,6 +96,7 @@ export function PostPage() {
             const professional = await createProfessional({
                 profile_id: user.id,
                 trade: finalTrade,
+                category: category || 'profesional',
                 description: fullDescription,
                 skills: tags,
                 lat: -38.7183, // default Bahía Blanca

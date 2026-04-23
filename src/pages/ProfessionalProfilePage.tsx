@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { useProfessional } from '../hooks/useProfessionals';
 import { useSupabaseReviews } from '../hooks/useSupabaseReviews';
 import { useSupabasePortfolio } from '../hooks/useSupabasePortfolio';
-import { PROFESSIONS_LIST, SERVICES_LIST, TRADES_LIST, TECNICS_LIST } from './PostPage';
 import clsx from 'clsx';
 
 export function ProfessionalProfilePage() {
@@ -63,18 +62,9 @@ export function ProfessionalProfilePage() {
     };
 
     // Flatten portfolio images and limit to 10
-    // Flatten portfolio images and limit to 10
     const allPhotos = portfolio.flatMap(p => p.images).slice(0, 10);
     // All images for carousel (Header Avatar first, then portfolio)
     const carouselImages = [professional.image, ...allPhotos];
-
-    const getCategoryLabel = (trade: string) => {
-        if (PROFESSIONS_LIST.includes(trade)) return 'Profesional';
-        if (SERVICES_LIST.includes(trade)) return 'Servicio';
-        if (TRADES_LIST.includes(trade)) return 'Oficio';
-        if (TECNICS_LIST.includes(trade)) return 'Técnico';
-        return 'Independiente';
-    };
 
     const openViewer = (index: number) => {
         setViewerIndex(index);
@@ -136,8 +126,8 @@ export function ProfessionalProfilePage() {
                 <div className="bg-white rounded-t-3xl rounded-b-xl shadow-md border-x border-t border-slate-100 p-5">
                     {/* Chips */}
                     <div className="flex flex-wrap items-center gap-2 mb-3">
-                        <span className="bg-slate-700 text-white text-[11px] font-bold px-2.5 py-1 rounded-full">
-                            {getCategoryLabel(professional.trade)}
+                        <span className="bg-slate-700 text-white text-[11px] font-bold px-2.5 py-1 rounded-full capitalize">
+                            {professional.category || 'Profesional'}
                         </span>
                         <span className="bg-white border border-slate-200 text-slate-700 text-[11px] font-bold px-2.5 py-1 rounded-full flex items-center gap-1">
                             <Briefcase size={12} /> {professional.trade}
