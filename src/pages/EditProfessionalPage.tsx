@@ -11,7 +11,7 @@ import { supabase } from '../lib/supabase';
 
 interface PortfolioItem {
     id: string;
-    image_url: string;
+    images: string[];
     category?: string;
 }
 
@@ -165,8 +165,9 @@ export function EditProfessionalPage() {
             
             // Delete removed photos
             for (const photo of photosToDelete) {
+                if (!photo.images || photo.images.length === 0) continue;
                 // Extract filename from URL 
-                const urlParts = photo.image_url.split('/');
+                const urlParts = photo.images[0].split('/');
                 const fileName = urlParts[urlParts.length - 1];
                 if (fileName) {
                     await deleteStorageFile('portfolio', `${user.id}/${fileName}`);
@@ -177,13 +178,21 @@ export function EditProfessionalPage() {
             // Upload new photos
             if (newPhotos.length > 0) {
                 const uploadedResult = await uploadPortfolioImages(user.id, newPhotos);
+                if (uploadedResult.errors && uploadedResult.errors.length > 0) {
+                    throw new Error(`Error al subir imágenes: ${uploadedResult.errors.join(', ')}`);
+                }
+                
                 if (uploadedResult.urls.length > 0) {
                     const itemsToInsert = uploadedResult.urls.map(url => ({
                         professional_id: professionalId,
-                        image_url: url,
+                        images: [url],
+                        caption: trade || 'Foto de portfolio',
                         category: 'general'
                     }));
-                    await supabase.from('portfolio_items').insert(itemsToInsert);
+                    const { error: insertError } = await supabase.from('portfolio_items').insert(itemsToInsert);
+                    if (insertError) {
+                        throw new Error(`Error al guardar en base de datos: ${insertError.message}`);
+                    }
                 }
             }
 
@@ -442,7 +451,7 @@ export function EditProfessionalPage() {
                             const isDeleted = photosToDelete.some(p => p.id === photo.id);
                             return (
                                 <div key={photo.id} className={clsx("relative aspect-square rounded-2xl overflow-hidden border-2 transition-all", isDeleted ? "border-red-500 opacity-50 grayscale" : "border-slate-100")}>
-                                    <img src={photo.image_url} alt="Portfolio item" className="w-full h-full object-cover" />
+                                    <img src={photo.images && photo.images[0] ? photo.images[0] : ''} alt="Portfolio item" className="w-full h-full object-cover" />
                                     <div className="absolute inset-0 bg-black/20 flex flex-col items-end justify-between p-2">
                                         {isDeleted ? (
                                             <button

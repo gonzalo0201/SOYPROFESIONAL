@@ -15,17 +15,23 @@ export function SearchPage() {
     const qParam = searchParams.get('q') || '';
     const locParam = searchParams.get('loc') || '';
 
-    const getInitialCategory = () => {
-        if (!categoryParam) return 'todos';
-        return ['servicio', 'tecnico', 'profesional', 'oficio'].includes(categoryParam) ? categoryParam : 'todos';
+    const getInitialCategories = () => {
+        if (!categoryParam) return ['servicio', 'tecnico', 'profesional', 'oficio'];
+        if (categoryParam.includes(',')) {
+            // handle multiple URL encoded
+            return categoryParam.split(',').filter(c => ['servicio', 'tecnico', 'profesional', 'oficio'].includes(c));
+        }
+        return ['servicio', 'tecnico', 'profesional', 'oficio'].includes(categoryParam) 
+            ? [categoryParam] 
+            : ['servicio', 'tecnico', 'profesional', 'oficio'];
     };
 
     const [searchTerm, setSearchTerm] = useState(qParam);
     const [locationTerm, setLocationTerm] = useState(locParam);
-    const [activeCategory, setActiveCategory] = useState(getInitialCategory());
+    const [activeCategories, setActiveCategories] = useState<string[]>(getInitialCategories());
 
     const { professionals: filteredPros, isLoading } = useProfessionals(
-        activeCategory === 'todos' ? undefined : [activeCategory],
+        activeCategories,
         searchTerm || undefined
     );
 
@@ -40,12 +46,14 @@ export function SearchPage() {
         
         if (locationTerm) params.set('loc', locationTerm);
         else params.delete('loc');
-        
-        if (activeCategory && activeCategory !== 'todos') params.set('category', activeCategory);
-        else params.delete('category');
+        if (activeCategories.length > 0 && activeCategories.length < 4) {
+            params.set('category', activeCategories.join(','));
+        } else {
+            params.delete('category');
+        }
         
         setSearchParams(params, { replace: true });
-    }, [searchTerm, locationTerm, activeCategory, setSearchParams, searchParams]);
+    }, [searchTerm, locationTerm, activeCategories, setSearchParams, searchParams]);
 
     // Backend handles filtering now via useProfessionals()! 
     // We already get exactly what we asked for in `filteredPros`.
@@ -144,30 +152,39 @@ export function SearchPage() {
                 </div>
 
                 {/* Categories Flowing Row like in Home */}
-                <div className="flex gap-4 mt-4 overflow-x-auto scrollbar-hide -mx-4 px-6 pb-2">
-                    {MAIN_CATEGORIES.map((cat) => (
-                        <button
-                            key={cat.id}
-                            onClick={() => setActiveCategory(activeCategory === cat.id ? 'todos' : cat.id)}
-                            className={clsx(
-                                "flex flex-col items-center gap-2 group outline-none min-w-[72px] transition-all",
-                                activeCategory === cat.id ? "scale-105" : "opacity-70 hover:opacity-100"
-                            )}
-                        >
-                            <div className={clsx(
-                                "w-14 h-14 rounded-2xl flex items-center justify-center text-white transition-all",
-                                activeCategory === cat.id ? `${cat.color} shadow-lg shadow-emerald-900/20 ring-4 ring-emerald-50` : "bg-slate-200 text-slate-500"
-                            )}>
-                                <cat.icon size={activeCategory === cat.id ? 26 : 22} strokeWidth={2} />
-                            </div>
-                            <span className={clsx(
-                                "text-[10px] uppercase tracking-wide text-center transition-colors",
-                                activeCategory === cat.id ? "font-black text-slate-800" : "font-bold text-slate-500"
-                            )}>
-                                {cat.label}
-                            </span>
-                        </button>
-                    ))}
+                <div className="flex justify-between w-full mt-4 -mx-4 px-6 pb-2">
+                    {MAIN_CATEGORIES.map((cat) => {
+                        const isActive = activeCategories.includes(cat.id);
+                        return (
+                            <button
+                                key={cat.id}
+                                onClick={() => {
+                                    setActiveCategories(prev => 
+                                        isActive 
+                                            ? prev.filter(c => c !== cat.id)
+                                            : [...prev, cat.id]
+                                    );
+                                }}
+                                className={clsx(
+                                    "flex flex-col items-center gap-2 group outline-none transition-all",
+                                    isActive ? "scale-105" : "opacity-60 hover:opacity-100 grayscale-[50%]"
+                                )}
+                            >
+                                <div className={clsx(
+                                    "w-14 h-14 rounded-2xl flex items-center justify-center text-white transition-all",
+                                    isActive ? `${cat.color} shadow-lg shadow-emerald-900/20 ring-4 ring-emerald-50` : "bg-slate-200 text-slate-400"
+                                )}>
+                                    <cat.icon size={isActive ? 26 : 22} strokeWidth={2} />
+                                </div>
+                                <span className={clsx(
+                                    "text-[10px] uppercase tracking-wide text-center transition-colors",
+                                    isActive ? "font-black text-slate-800" : "font-bold text-slate-400"
+                                )}>
+                                    {cat.label}
+                                </span>
+                            </button>
+                        );
+                    })}
                 </div>
             </div>
 
