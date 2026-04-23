@@ -1,5 +1,5 @@
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Star, MapPin, Share2, Heart, Clock, Briefcase, Loader2, User, Mail, MessageCircle, Instagram, Facebook, X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ArrowLeft, Star, MapPin, Share2, Heart, Clock, Briefcase, Loader2, User, Mail, MessageCircle, Instagram, Facebook, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useState } from 'react';
 import { useProfessional } from '../hooks/useProfessionals';
 import { useSupabaseReviews } from '../hooks/useSupabaseReviews';
