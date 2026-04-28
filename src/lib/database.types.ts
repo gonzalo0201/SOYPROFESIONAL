@@ -247,6 +247,26 @@ export interface Database {
           is_read?: boolean
         }
       }
+      favorites: {
+        Row: {
+          id: string
+          user_id: string
+          professional_id: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          professional_id: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          professional_id?: string
+          created_at?: string
+        }
+      }
     }
   }
 }
@@ -259,6 +279,7 @@ export type PortfolioItem = Database['public']['Tables']['portfolio_items']['Row
 export type Message = Database['public']['Tables']['messages']['Row'];
 export type Conversation = Database['public']['Tables']['conversations']['Row'];
 export type NotificationRow = Database['public']['Tables']['notifications']['Row'];
+export type Favorite = Database['public']['Tables']['favorites']['Row'];
 
 // Combined types (for JOINs)
 export interface ProfessionalWithProfile extends Professional {

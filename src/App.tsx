@@ -14,6 +14,7 @@ import { LocationProvider } from './contexts/LocationContext';
 import { NotificationProvider } from './contexts/NotificationContext';
 import { AuthProvider } from './contexts/AuthContext';
 import { InstallPrompt } from './components/InstallPrompt';
+import { FavoritesPage } from './pages/FavoritesPage';
 import { UpdatePrompt } from './components/UpdatePrompt';
 import { NotificationPermissionPrompt } from './components/NotificationPermissionPrompt';
 
@@ -28,7 +29,7 @@ function App() {
                 <Route path="/" element={<HomePage />} />
                 <Route path="/search" element={<SearchPage />} />
                 <Route path="/post" element={<PostPage />} />
-                <Route path="/favorites" element={<div className="flex h-full items-center justify-center p-8 text-center text-slate-500 font-medium">Pronto podrás ver tus favoritos aquí.</div>} />
+                <Route path="/favorites" element={<FavoritesPage />} />
                 <Route path="/profile" element={<ProfilePage />} />
                 <Route path="/edit-profile" element={<EditProfilePage />} />
                 <Route path="/edit-professional" element={<EditProfessionalPage />} />

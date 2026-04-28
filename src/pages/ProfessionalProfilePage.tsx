@@ -4,6 +4,8 @@ import { useState } from 'react';
 import { useProfessional } from '../hooks/useProfessionals';
 import { useSupabaseReviews } from '../hooks/useSupabaseReviews';
 import { useSupabasePortfolio } from '../hooks/useSupabasePortfolio';
+import { useFavorites } from '../hooks/useFavorites';
+import { WriteReviewModal } from '../components/WriteReviewModal';
 import clsx from 'clsx';
 
 export function ProfessionalProfilePage() {
@@ -16,6 +18,10 @@ export function ProfessionalProfilePage() {
     // Fullscreen Gallery Viewer State
     const [viewerOpen, setViewerOpen] = useState(false);
     const [viewerIndex, setViewerIndex] = useState(0);
+
+    // Favorites & Reviews State
+    const { isFavorite, toggleFavorite, isLoading: favLoading } = useFavorites(id);
+    const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
 
     if (proLoading) {
         return (
@@ -114,8 +120,12 @@ export function ProfessionalProfilePage() {
                         <button className="p-2 bg-black/30 backdrop-blur rounded-full transition-colors">
                             <Share2 size={18} />
                         </button>
-                        <button className="p-2 bg-black/30 backdrop-blur rounded-full transition-colors">
-                            <Heart size={18} />
+                        <button 
+                            onClick={(e) => { e.stopPropagation(); toggleFavorite(); }}
+                            disabled={favLoading}
+                            className="p-2 bg-black/30 backdrop-blur rounded-full transition-colors"
+                        >
+                            <Heart size={18} className={clsx("transition-colors", isFavorite ? "text-red-500 fill-red-500" : "text-white")} />
                         </button>
                     </div>
                 </div>
@@ -254,10 +264,18 @@ export function ProfessionalProfilePage() {
 
                 {/* Reviews */}
                 <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
-                    <h2 className="font-bold text-slate-900 text-sm flex items-center gap-2 mb-4">
-                        <Star size={14} className="text-emerald-500 fill-emerald-500" />
-                        Valoraciones
-                    </h2>
+                    <div className="flex items-center justify-between mb-4">
+                        <h2 className="font-bold text-slate-900 text-sm flex items-center gap-2">
+                            <Star size={14} className="text-emerald-500 fill-emerald-500" />
+                            Valoraciones
+                        </h2>
+                        <button 
+                            onClick={() => setIsReviewModalOpen(true)}
+                            className="text-xs font-bold text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-lg border border-emerald-100"
+                        >
+                            Escribir Reseña
+                        </button>
+                    </div>
 
                     {reviewsLoading ? (
                         <Loader2 size={24} className="text-emerald-500 animate-spin mx-auto my-6" />
@@ -321,6 +339,17 @@ export function ProfessionalProfilePage() {
                         </p>
                     </div>
                 </div>
+            )}
+
+            {id && (
+                <WriteReviewModal
+                    professionalId={id}
+                    isOpen={isReviewModalOpen}
+                    onClose={() => setIsReviewModalOpen(false)}
+                    onSuccess={() => {
+                        window.location.reload(); // Simple reload to fetch new review
+                    }}
+                />
             )}
         </div>
     );
