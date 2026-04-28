@@ -1,5 +1,5 @@
 import { supabase } from '../lib/supabase';
-import type { Professional, ProfessionalWithProfile } from '../lib/database.types';
+import type { Professional } from '../lib/database.types';
 
 export async function toggleFavorite(userId: string, professionalId: string): Promise<boolean> {
   // First check if it exists
